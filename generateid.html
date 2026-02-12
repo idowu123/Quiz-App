@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UID Generator</title>
+<style>
+  body { font-family: Arial, sans-serif; padding: 20px; }
+  input, button, textarea { margin: 8px 0; padding: 10px; width: 100%; max-width: 400px; box-sizing: border-box; }
+  button { background: #3f51b5; color: white; border: none; border-radius: 5px; cursor: pointer; }
+  button:hover { background: #303f9f; transition: 0.2s; }
+  textarea { min-height: 150px; }
+  .status { margin-top: 10px; font-weight: bold; }
+</style>
+</head>
+<body>
+  <h2>UID Generator & Checker</h2>
+
+  <label>Enter Number of UIDs to be  Generated:</label>
+  <input type="number" id="uidCount" placeholder="Enter number" min="1" max="500">
+
+  <button onclick="generateUIDs()">Generate UIDs</button>
+
+  <label>Generated UIDs (Copy and paste into your quiz setup):</label>
+  <textarea id="generatedUIDs" readonly></textarea>
+
+  <button onclick="copyUIDs()">Copy to Clipboard</button>
+
+  <hr>
+
+  <label>Check if a UID has been used:</label>
+  <input type="text" id="checkUID" placeholder="Enter UID to check">
+  <button onclick="checkUID()">Check UID</button>
+  <p id="uidStatus" class="status"></p>
+
+<script>
+  // Characters for UID: letters, numbers, symbols
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+;:?';
+
+  function generateUID() {
+    let uid = '';
+    for (let i = 0; i < 6; i++) {
+      uid += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return uid;
+  }
+
+  function generateUIDs() {
+    const count = parseInt(document.getElementById('uidCount').value);
+    if (!count || count < 1) {
+      alert('Enter a valid number of UIDs to generate.');
+      return;
+    }
+
+    let list = '';
+    for (let i = 0; i < count; i++) {
+      list += generateUID() + '\n';
+    }
+
+    document.getElementById('generatedUIDs').value = list.trim();
+  }
+
+  function copyUIDs() {
+    const textarea = document.getElementById('generatedUIDs');
+    textarea.select();
+    document.execCommand('copy');
+    alert('UIDs copied to clipboard!');
+  }
+
+  function checkUID() {
+    const uid = document.getElementById('checkUID').value.trim();
+    if (!uid) {
+      alert('Enter a UID to check.');
+      return;
+    }
+
+    // Check in localStorage if UID was used in quizzes
+    const used = localStorage.getItem('quiz_uid_used_' + uid);
+    const statusEl = document.getElementById('uidStatus');
+    if (used) {
+      statusEl.textContent = `❌ UID "${uid}" has already been used.`;
+      statusEl.style.color = 'red';
+    } else {
+      statusEl.textContent = `✅ UID "${uid}" is available.`;
+      statusEl.style.color = 'green';
+    }
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,183 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Offline Quiz App (Passkey + PDF Result + Responsive)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+   <link rel="manifest" href="/manifest.json">
+  <style>
+    /* ---------- GLOBAL STYLES ---------- */
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f9;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background: #3f51b5;
+      color: white;
+      padding: 15px;
+      text-align: center;
+    }
+
+   
+    button {
+      background: #3f51b5;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+
+    button:hover {
+      background: #303f9f;
+      transition: 0.2s;
+    }
+.lite{
+  background-color: #303f9f;
+  width: 150px;
+  height: 70px;
+}
+.lite a {
+  color:white;
+  font-weight: bold;
+  text-decoration: none;
+}
+    
+.multiple{
+  background-color: #303f9f;
+  width: 150px;
+  height: 70px;
+}
+.multiple a {
+  color:white;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+    /* ---------- RESPONSIVE DESIGN ---------- */
+    @media (max-width: 600px) {
+      body {
+        font-size: 16px;
+      }
+
+      header {
+        font-size: 18px;
+      }
+
+      input,
+      button {
+        font-size: 15px;
+      }
+
+      .login-container,
+      .student-box {
+        margin: 20px;
+        width: auto;
+      }
+    }
+    .other_tools{
+      background-color: white;
+      width:120px;
+    }
+    .other_tools a{
+      font-weight: bold;
+      text-decoration: none;
+    }
+    .student_report{
+        width:180px;
+    }
+    .show_infoofreport{
+        background-color: black;
+        color:rgba(255, 255, 255, 0.726);
+        margin:0px;
+        padding:10px;
+    }
+    .student_report a {
+      color:white;
+      font-size: 12px;
+      font-weight: bold;
+    }
+    hr{
+      color:blue;
+      size:20px;
+    }
+    .email{
+      margin:30px;
+      text-decoration: none;
+
+    }
+    .email a{
+      text-decoration: none;
+    }
+
+.livechat{
+  color:hsla(236, 98%, 61%, 0.507);
+  font-style: italic;
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+  animation:blink 2s infinite;
+}
+.livechat:hover{
+  color:rgb(255, 115, 0);   
+}
+@keyframes blink{
+  0%{
+    opacity:1;
+  }
+  50%{
+    opacity:0;
+  }
+  100%{
+    opacity:1;
+  }
+}
+
+  </style>
+</head>
+<body>
+    <center><h1></h1></center>
+    <P><center><button class="lite"><a href="lite.html"> Lite Attendance </a></button> <br><br>
+       <a href="report 3.png"><img src="report 3.png" width="100px"></a>  <a href="report 4.png"><img src="report 4.png" width="100px"></a><br><br>
+    <button  class="student_report"><a href="aboutlite.html">About lite Attendance</a></button></center></P>
+   
+    <p id='p_show' class="show_infoofreport"></p><br><br>
+    <hr>
+    <br><br>
+   <p><center><button class="multiple" ><a href="multiple.html">Multiple Schools And Class Attendance</a></button> <br> <br>
+    <a href="report1.png"><img src="report1.png" width="100px"></a>  <a href="report 2.png"><img src="report 2.png" width="100px"></a><br><br>
+    <button class="student_report"  ><a href="aboutmultiple.html">About Multiple Attendance</a> </button></center></p><br>
+
+   <p id="typing_test" class="show_infoofreport"></p><br>
+   
+   <center><p>For Enquiry  & Feedback Send Mail To:</p></center>
+   <center>
+   <a  class="email" href="mailto:support@noblestudio.com.ng">support@noblestudio.com.ng</a>
+   <a class= "email" href="mailto:solomonidowumichael@gmail.com">solomonidowumichael@gmail.com</a>
+   <p><a class="livechat" href="https://wa.me/7010067689">Live Chat <img src="livechat.png"  width="50px"></a></p>
+   </center>
+</body>
+<script>
+    document.getElementById('p_show');
+   const btn = document.getElementById('student_report');
+    btn.addEventListener('mouseover', function(){
+ document.getElementById('p_show').innerText ='Welcome to the Teacher Attendance & Communication App \n \n your all-in-one tool for classroom management, student attendance tracking, and parent communication \n \n The Basic Attendance App helps teachers manage attendance for a single class. It is lightweight, fully offline, and easy to use — perfect for schools that want a simple yet effective record-keeping solution. \n \n 🔹 Key Features \n \n  1. Add and store students’ names locally on your device. \n 2. Mark daily attendance (Present/Absent). \n 3. Generate and view daily reports instantly. \n 4. Save attendance reports as PDF for sharing \n 5. Check attendance for any past date \n 6. Fully mobile-responsive design.  \n \n 🔹 How to Use \n \n 1. Go to the Students page and add names. \n 2. Open the <strong>Attendance</strong> tab to mark attendance.'
+    });
+
+     btn.addEventListener('mouseout', function() {
+            p_show.innerHTML = "";
+            p_show.style.display ='flex';
+           });
+
+document.getElementById('typing_test');
+const button = document.getElementById('typing_exam');
+button.addEventListener('mouseover', function(){
+  document.getElementById('typing_test').innerText='"Make use of this tool to craft Objective and Theory questions for your students, set your exam, test, and send it to your computer for printing. get your students exam-ready, anywhere, anytime.\n Perfect for teachers on-the-go". '
+});
+
+ button.addEventListener('mouseout', function(){
+  document.getElementById('typing_test').innerText="";
+ });
+</script>
+</html>

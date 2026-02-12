@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Attendance Manager</title>
+
+<!-- jsPDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
+<link rel="manifest" href="/manifest.json">
+<style>
+:root{
+    --brand:#0b5394;
+    --bg:#f4f7f9;
+    --card:#fff;
+}
+body{margin:0;font-family:Inter,Segoe UI,Arial,Helvetica,sans-serif;background:var(--bg);}
+header{background:var(--brand);color:#fff;padding:14px;text-align:center;font-weight:700;font-size:1.15rem;}
+.wrap{max-width:1100px;margin:18px auto;padding:16px;}
+.card{background:var(--card);border-radius:10px;padding:14px;box-shadow:0 6px 18px rgba(10,20,30,0.06);}
+.tabs{display:flex;gap:8px;margin-bottom:12px;}
+.tab-btn{flex:1;padding:10px;text-align:center;cursor:pointer;border-radius:8px;background:#e9f0fb;color:var(--brand);font-weight:600;}
+.tab-btn.active{background:var(--brand);color:#fff;}
+.tab-content{display:none;}
+.tab-content.active{display:block;}
+input,textarea,select{width:100%;padding:8px;border-radius:6px;border:1px solid #cfd8e3;margin-bottom:10px;font-size:0.95rem;}
+textarea{resize:vertical;}
+button{background:var(--brand);color:#fff;border:none;padding:9px 12px;border-radius:8px;cursor:pointer;font-weight:600;margin-right:8px;}
+button.ghost{background:#e9f0fb;color:var(--brand);border:1px solid #d6e6fb;}
+.muted{color:#666;font-size:0.88rem;}
+table{width:100%;border-collapse:collapse;margin-top:8px}
+th,td{padding:8px;border:1px solid #e6eef8;text-align:left}
+th{background:var(--brand);color:#fff;text-align:center}
+.center{text-align:center}
+.preview{margin-top:12px;padding:10px;border-radius:8px;background:#fbfdff;border:1px solid #e6f0fb;max-height:380px;overflow:auto}
+@media(max-width:920px){.wrap{padding:10px}}
+</style>
+</head>
+<body>
+
+<header>Attendance Manager</header>
+<div class="wrap">
+
+  <div class="tabs">
+    <div class="tab-btn active" data-tab="students">Students</div>
+    <div class="tab-btn" data-tab="attendance">Attendance</div>
+    <div class="tab-btn" data-tab="reports">Reports</div>
+  </div>
+
+  <!-- STUDENTS TAB -->
+  <div class="tab-content active" id="students">
+    <div class="card">
+      <h3>School & Teacher Info</h3>
+      <label>School Name</label>
+      <input id="schoolName" type="text" placeholder="Enter School Name">
+      <label>Teacher Name</label>
+      <input id="teacherName" type="text" placeholder="Enter Teacher Name">
+
+      <hr>
+
+      <h3>Manage Students</h3>
+      <div style="display:flex;gap:8px;margin-bottom:8px;">
+        <input id="newStudent" type="text" placeholder="Add student (Firstname Lastname)">
+        <button onclick="addStudent()">Add</button>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+        <select id="removeSelect">
+          <option value="">--Select student to remove--</option>
+        </select>
+        <button class="ghost" onclick="removeSelectedStudent()">Remove</button>
+      </div>
+      <div class="muted">Current students:</div>
+      <div id="studentListContainer" style="margin-top:8px;max-height:200px;overflow:auto"></div>
+      <div style="margin-top:10px"><button class="ghost warn" onclick="clearAllData()">Clear All Data</button></div>
+    </div>
+  </div>
+
+  <!-- ATTENDANCE TAB -->
+  <div class="tab-content" id="attendance">
+    <div class="card">
+      <h3>Mark Attendance</h3>
+      <div class="muted">Date: <span id="todayDate"></span></div>
+      <label>Notice / Announcement</label>
+      <textarea id="notice" rows="3" placeholder="PTA, fees reminder, end-of-year, etc."></textarea>
+
+      <table id="attendanceTable">
+        <thead>
+          <tr><th>Student Name</th><th class="center">Present</th><th class="center">Absent</th></tr>
+        </thead>
+        <tbody id="attendanceBody"></tbody>
+      </table>
+
+      <div style="margin-top:10px;">
+        <button onclick="markAll('Present')">Mark All Present</button>
+        <button class="ghost" onclick="markAll('Absent')">Mark All Absent</button>
+        <button onclick="saveAttendance()">Save Attendance</button>
+        <button class="ghost" onclick="clearTodayMarks()">Clear Marks</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- REPORTS TAB -->
+  <div class="tab-content" id="reports">
+    <div class="card">
+      <h3>View & Export Reports</h3>
+
+      <!-- Daily -->
+      <div style="margin-bottom:12px">
+        <label>Daily Report — pick a date</label>
+        <input type="date" id="reportDate">
+        <div style="margin-top:8px">
+          <button onclick="generateReport('daily')">View Daily</button>
+          <button onclick="generateReport('daily-pdf')">Export Daily PDF</button>
+        </div>
+      </div>
+
+      <hr>
+
+      <!-- Weekly -->
+      <div style="margin-bottom:12px">
+        <label>Weekly Report — choose end date (shows last 7 days including selected)</label>
+        <input type="date" id="reportWeekEnd" />
+        <div style="margin-top:8px">
+          <button onclick="generateReport('weekly')">View Weekly</button>
+          <button onclick="generateReport('weekly-pdf')">Export Weekly PDF</button>
+        </div>
+      </div>
+
+      <hr>
+
+      <!-- Monthly -->
+      <div style="margin-bottom:12px">
+        <label>Monthly Report — choose month</label>
+        <input type="month" id="reportMonth" />
+        <div style="margin-top:8px">
+          <button onclick="generateReport('monthly')">View Monthly</button>
+          <button onclick="generateReport('monthly-pdf')">Export Monthly PDF</button>
+        </div>
+      </div>
+
+      <hr>
+
+      <!-- Individual -->
+      <div style="margin-bottom:12px">
+        <label>Individual Student Report</label>
+        <select id="studentSelectReport"><option value="">--Select student--</option></select>
+        <div style="margin-top:8px">
+          <button onclick="generateReport('student')">View Student History</button>
+          <button onclick="generateReport('student-pdf')">Export Student PDF</button>
+        </div>
+      </div>
+
+      <div class="preview" id="reportPreview">Report preview will appear here when you click View.</div>
+
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* -------------------------
+   LocalStorage keys & helpers
+------------------------- */
+const LS_STUDENTS='dg_students_v4';
+const LS_RECORDS='dg_attendance_records_v4';
+const LS_SCHOOL='dg_school_name_v4';
+const LS_TEACHER='dg_teacher_name_v4';
+
+function todayISO(){ return new Date().toISOString().slice(0,10); }
+function displayDate(iso){ return new Date(iso + 'T00:00:00').toLocaleDateString(); }
+function loadStudents(){ return JSON.parse(localStorage.getItem(LS_STUDENTS)||'[]'); }
+function saveStudents(list){ localStorage.setItem(LS_STUDENTS,JSON.stringify(list)); }
+function loadRecords(){ return JSON.parse(localStorage.getItem(LS_RECORDS)||'[]'); }
+function saveRecords(list){ localStorage.setItem(LS_RECORDS,JSON.stringify(list)); }
+
+/* -------------------------
+   UI wiring & boot
+------------------------- */
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.tab).classList.add('active');
+  });
+});
+
+const schoolInput = document.getElementById('schoolName');
+const teacherInput = document.getElementById('teacherName');
+schoolInput.value = localStorage.getItem(LS_SCHOOL) || '';
+teacherInput.value = localStorage.getItem(LS_TEACHER) || '';
+schoolInput.addEventListener('change', ()=>localStorage.setItem(LS_SCHOOL, schoolInput.value));
+teacherInput.addEventListener('change', ()=>localStorage.setItem(LS_TEACHER, teacherInput.value));
+
+document.getElementById('todayDate').textContent = new Date().toLocaleDateString();
+document.getElementById('reportDate').value = todayISO();
+document.getElementById('reportWeekEnd').value = todayISO();
+document.getElementById('reportMonth').value = new Date().toISOString().slice(0,7);
+
+/* DOM elements */
+const studentListContainer = document.getElementById('studentListContainer');
+const attendanceBody = document.getElementById('attendanceBody');
+const removeSelect = document.getElementById('removeSelect');
+const studentSelectReport = document.getElementById('studentSelectReport');
+const reportPreview = document.getElementById('reportPreview');
+
+/* -------------------------
+   Students list UI
+------------------------- */
+function renderStudents(){
+  const students = loadStudents();
+  studentListContainer.innerHTML = '';
+  if(students.length===0){
+    studentListContainer.innerHTML = '<div class="muted">No students added yet.</div>';
+  } else {
+    students.forEach(s=>{
+      const div = document.createElement('div');
+      div.textContent = s;
+      div.style.padding='6px';
+      div.style.borderBottom='1px solid #f0f6fb';
+      studentListContainer.appendChild(div);
+    });
+  }
+
+  removeSelect.innerHTML = '<option value="">--Select student to remove--</option>';
+  studentSelectReport.innerHTML = '<option value="">--Select student--</option>';
+  students.forEach(s=>{
+    const o = document.createElement('option'); o.value=s; o.textContent=s;
+    removeSelect.appendChild(o);
+    studentSelectReport.appendChild(o.cloneNode(true));
+  });
+
+  buildAttendanceTable();
+}
+
+/* -------------------------
+   Add / Remove students
+------------------------- */
+function addStudent(){
+  const input = document.getElementById('newStudent'); const name = input.value.trim();
+  if(!name){ alert('Enter student name'); return; }
+  const students = loadStudents();
+  if(students.includes(name)){ alert('Student exists'); input.value=''; return; }
+  students.push(name); saveStudents(students); input.value=''; renderStudents();
+}
+function removeSelectedStudent(){
+  const val = removeSelect.value; if(!val){ alert('Select a student'); return; }
+  if(!confirm('Remove '+val+'?')) return;
+  let students = loadStudents(); students = students.filter(s=>s!==val); saveStudents(students); renderStudents();
+}
+function clearAllData(){ if(confirm('Clear ALL students and records?')){ localStorage.removeItem(LS_STUDENTS); localStorage.removeItem(LS_RECORDS); renderStudents(); reportPreview.innerHTML=''; alert('Cleared'); }}
+
+/* -------------------------
+   Attendance UI
+------------------------- */
+function buildAttendanceTable(){
+  const students = loadStudents();
+  attendanceBody.innerHTML = '';
+  if(students.length===0){
+    attendanceBody.innerHTML = '<tr><td colspan="3" class="center muted">No students</td></tr>';
+    return;
+  }
+  students.forEach((s, idx)=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${s}</td>
+      <td class="center"><input type="radio" name="att-${idx}" value="Present"></td>
+      <td class="center"><input type="radio" name="att-${idx}" value="Absent"></td>`;
+    attendanceBody.appendChild(tr);
+  });
+}
+function markAll(status){
+  loadStudents().forEach((_,idx)=>{
+    const el = document.querySelector(`input[name="att-${idx}"][value="${status}"]`);
+    if(el) el.checked = true;
+  });
+}
+function clearTodayMarks(){ loadStudents().forEach((_,idx)=>{ const c = document.querySelector(`input[name="att-${idx}"]:checked`); if(c) c.checked=false; }); }
+
+/* -------------------------
+   Save attendance
+------------------------- */
+function saveAttendance(){
+  const students = loadStudents();
+  if(students.length===0){ alert('Add students first'); return; }
+  const date = todayISO();
+  const school = schoolInput.value || 'School';
+  const teacher = teacherInput.value || 'Teacher';
+  const notice = document.getElementById('notice').value || '';
+  const statuses = students.map((name, idx)=>{
+    const sel = document.querySelector(`input[name="att-${idx}"]:checked`);
+    return { name, status: sel ? sel.value : 'Absent' };
+  });
+
+  let records = loadRecords();
+  const existingIndex = records.findIndex(r => r.date === date);
+  const obj = { date, school, teacher, notice, students: statuses };
+  if(existingIndex >= 0){
+    if(!confirm('A record for this date already exists — overwrite?')) return;
+    records[existingIndex] = obj;
+  } else {
+    records.push(obj);
+  }
+  saveRecords(records);
+  alert('Attendance saved for ' + displayDate(date));
+}
+
+/* -------------------------
+   Reports helpers
+------------------------- */
+function parseISO(iso){ return new Date(iso + 'T00:00:00'); }
+function getRecordsBetween(startISO, endISO){
+  const records = loadRecords();
+  return records.filter(r=>{
+    const d = parseISO(r.date);
+    return d >= parseISO(startISO) && d <= parseISO(endISO);
+  }).sort((a,b)=> a.date.localeCompare(b.date));
+}
+
+/* -------------------------
+   Cordova + Browser PDF save
+------------------------- */
+const { jsPDF } = window.jspdf;
+
+function savePDF(doc, filename){
+  const isCordovaApp = typeof cordova !== "undefined";
+  if(!isCordovaApp){ doc.save(filename); return; }
+
+  const pdfOutput = doc.output("arraybuffer");
+  const buffer = new Uint8Array(pdfOutput);
+  const folderPath = cordova.file.externalDataDirectory;
+
+  window.resolveLocalFileSystemURL(folderPath, function(dir){
+    dir.getFile(filename, { create:true }, function(file){
+      file.createWriter(function(fileWriter){
+        fileWriter.write(new Blob([buffer], { type: "application/pdf" }));
+        if(cordova.plugins && cordova.plugins.fileOpener2){
+          cordova.plugins.fileOpener2.open(
+            folderPath + filename,
+            "application/pdf",
+            {
+              error: function(e){ alert("Failed to open PDF: "+e.message); },
+              success: function(){ console.log("PDF opened successfully"); }
+            }
+          );
+        }
+      });
+    });
+  });
+}
+
+/* -------------------------
+   Generate Reports
+------------------------- */
+function generateReport(action){
+  reportPreview.innerHTML='';
+  const school = schoolInput.value || 'School';
+  const teacher = teacherInput.value || 'Teacher';
+
+  // Daily
+  if(action==='daily'||action==='daily-pdf'){
+    const date = document.getElementById('reportDate').value || todayISO();
+    const rec = loadRecords().find(r=> r.date===date);
+    if(!rec){ alert('No record for '+displayDate(date)); return; }
+
+    const html=[];
+    html.push(`<h4>Daily Report — ${displayDate(date)}</h4>`);
+    html.push(`<div class="muted">Teacher: ${rec.teacher} | School: ${rec.school}</div>`);
+    html.push('<table><thead><tr><th>Student</th><th class="center">Status</th></tr></thead><tbody>');
+    rec.students.forEach(s=> html.push(`<tr><td>${s.name}</td><td class="center">${s.status}</td></tr>`));
+    html.push('</tbody></table>');
+    if(rec.notice) html.push(`<div style="margin-top:8px"><strong>Notice:</strong><div>${rec.notice.replace(/\n/g,'<br>')}</div></div>`);
+    reportPreview.innerHTML=html.join('');
+
+    if(action==='daily-pdf'){
+      const doc=new jsPDF();
+      doc.setFontSize(16); doc.text(school,105,14,null,null,'center');
+      doc.setFontSize(12); doc.text('Daily Attendance Report',105,22,null,null,'center');
+      doc.text('Teacher: '+teacher,14,32); doc.text('Date: '+displayDate(date),14,40);
+      const body=rec.students.map(s=>[s.name,s.status]);
+      doc.autoTable({ startY:48, head:[['Student','Status']], body, theme:'grid' });
+      if(rec.notice){ const y=doc.lastAutoTable.finalY+8; doc.text('Notice:',14,y); doc.text(rec.notice,14,y+6); }
+      savePDF(doc, `Daily_Report_${date}.pdf`);
+    }
+    return;
+  }
+
+  // Weekly, Monthly, Student reports can be copied similarly
+}
+
+/* -------------------------
+   Boot
+------------------------- */
+(function boot(){
+  if(!localStorage.getItem(LS_STUDENTS)) saveStudents([]);
+  if(!localStorage.getItem(LS_RECORDS)) saveRecords([]);
+  renderStudents();
+})();
+</script>
+
+</body>
+</html>

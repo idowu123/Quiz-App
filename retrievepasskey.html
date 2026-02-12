@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Passkey Validation</title>
+   <link rel="manifest" href="/manifest.json">
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: hsl(120, 21%, 93%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .container {
+      background: #fff;
+      padding: 25px 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+      width: 350px;
+      text-align: center;
+      display:flex;
+      flex-wrap:wrap;
+    }
+
+    h2 {
+      color: #333;
+      margin-bottom: 20px;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-size: 15px;
+    }
+
+    button {
+      background: #007bff;
+      color: white;
+      padding: 10px 0;
+      border: none;
+      width: 100%;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background: #0056b3;
+    }
+
+    #result {
+      margin-top: 15px;
+      font-weight: bold;
+    }
+
+    .success {
+      color: green;
+    }
+
+    .error {
+      color: red;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>Retrieve Your Passkey</h2>
+    <p>Your passkey should look like this :NSQAPXXXXXXXXXX</p>
+<ol>
+  <li>Enter the phone and Email that  you use when you purchase your passkey</li><br>
+  <li>Enter your unique passkey ID e.g NSQAP111 </li><br>
+  <li>Lastly click Validate to retrieve your passkey</li>
+</ol><br>
+    <form id="passkeyForm">
+      <input type="text" id="phone" placeholder="Enter Phone Number" required>
+      <input type="email" id="email" placeholder="Enter Email" required>
+      <input type="text" id="passkeyId" placeholder="Enter Passkey ID (e.g. NSQAP11)" required>
+      <button type="submit">Validate</button>
+    </form>
+    <p id="result"></p><br><br>
+    <a href="index.html">Goto Activation Page</a>
+  </div>
+
+  <script>
+    // Simulated passkey records (this could come from a database later)
+
+    //solomon@gmail.com
+    const userRecords = [
+      {phone: "07037972414", email: "solomonidowumichael@gmail.com", passkeyId: "NSQAP1", passkey: "NSQAP3614959778"},
+      
+      //johnadeola@gmail.com
+      { phone: "07055554444", email: "johndoe@example.com", passkeyId: "NSQAP12", passkey: "PASSKEY-ABCD-5678"},
+
+      //temitopeajibade@gmail.com
+      { phone: "07055554444", email: "johndoe@example.com", passkeyId: "NSQAP12", passkey: "PASSKEY-ABCD-5678"},
+
+//toyosiibrahim@gmail.com
+      {phone: "07055554444", email: "johndoe@example.com", passkeyId: "NSQAP12", passkey: "PASSKEY-ABCD-5678" },
+    ];
+
+    document.getElementById("passkeyForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+
+      const phone = document.getElementById("phone").value.trim();
+      const email = document.getElementById("email").value.trim();
+      const passkeyId = document.getElementById("passkeyId").value.trim().toUpperCase();
+      const result = document.getElementById("result");
+
+      // Check if entered details match any stored record
+      const user = userRecords.find(u =>
+        u.phone === phone &&
+        u.email.toLowerCase() === email.toLowerCase() &&
+        u.passkeyId === passkeyId
+      );
+
+      if (user) {
+        result.innerHTML = `✅ This is your passkey: <strong>${user.passkey}</strong>`;
+        result.className = "success";
+      } else {
+        result.innerHTML = "❌ Invalid details. Please check and try again.";
+        result.className = "error";
+      }
+    });
+  </script>
+
+</body>
+</html>

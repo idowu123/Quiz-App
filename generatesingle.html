@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Student Report App - Single Student</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
+ <link rel="manifest" href="/manifest.json">
+<style>
+body{font-family:sans-serif; padding:20px; background:#f9f9f9;}
+h2{color:#0b63d6;}
+.section{display:none; margin-bottom:20px; padding:16px; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.1);}
+.active{display:block;}
+input{width:100%; max-width:200px; padding:6px; margin-bottom:6px; box-sizing:border-box;}
+button{padding:6px 12px; margin:4px 2px; cursor:pointer; border:none; border-radius:4px; color:#fff; background:#0b63d6;}
+button:hover{opacity:0.9;}
+table{border-collapse:collapse; width:100%; margin-top:10px;}
+th, td{border:1px solid #ccc; padding:6px; text-align:center; vertical-align:top;}
+.totalCell{font-weight:600;}
+#reportPreview{overflow-x:auto;}
+.steps button{margin:4px; padding:6px 12px; border:none; border-radius:4px; cursor:pointer;}
+.currentStep{background:red; color:#fff;}
+.completedStep{background:#0b63d6; color:#fff;}
+@media (max-width:600px){
+  input{max-width:100%;}
+  button{width:100%;}
+  table, th, td{font-size:12px;}
+}
+
+.livechat{
+  color:hsla(256, 98%, 61%, 0.404);
+  font-style: italic;
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+  animation:blink 2s infinite;
+}
+.livechat:hover{
+  color:rgb(255, 115, 0);   
+}
+@keyframes blink{
+  0%{
+    opacity:1;
+  }
+  50%{
+    opacity:0;
+  }
+  100%{
+    opacity:1;
+  }
+}
+</style>
+</head>
+<body>
+<h2>Student Report App - Single Student</h2>
+
+<div class="steps">
+  <button id="btnStep1" onclick="showStep(1)">Step 1</button>
+  <button id="btnStep2" onclick="showStep(2)">Step 2</button>
+  <button id="btnStep3" onclick="showStep(3)">Step 3</button>
+  <button id="btnStep4" onclick="showStep(4)">Step 4</button>
+</div>
+
+<!-- Step 1: School Info -->
+<div id="step1" class="section active">
+  <h3>Step 1: School Info</h3>
+  <input id="schoolName" placeholder="School Name"><br>
+  <input id="className" placeholder="Class Name"><br>
+  <input id="teacherName" placeholder="Teacher Name"><br>
+  <label>School Logo:</label>
+  <input type="file" id="schoolLogo" accept="image/*"><br>
+  <img id="logoPreview" src="" alt="" style="max-width:150px; margin-bottom:10px; display:none;"><br>
+  <button onclick="saveStep1()">Save & Next</button>
+</div>
+
+<!-- Step 2: Subjects -->
+<div id="step2" class="section">
+  <h3>Step 2: Subjects</h3>
+  <p>Input Numbers of subjects and Generate Subject</p>
+  <input id="subjectCount" type="number" value="3" min="1">
+  <button onclick="generateSubjects()">Generate Subjects</button>
+  <div id="subjectsContainer"></div>
+  <button onclick="showStep(1)">Back</button>
+  <button onclick="saveSubjects()">Save & Next</button>
+  <p>Create Subject with acronym to make student report look responsive on mobile phone 
+    e.g <ul>
+      <li><acronym title="Physics">phy</acronym></li>
+      <li><acronym title="Biology">Bio</acronym></li>
+      <li><acronym title="Physical Health Education">PHE</acronym></li>
+      <li><acronym title="English">Eng</acronym></li>
+      <li><acronym title="Basic Science">BS</acronym></li>
+      <li><acronym title="Christian Religious Studies">CRK</acronym></li>
+    </ul>
+  </p>
+</div>
+
+<!-- Step 3: Student Info -->
+<div id="step3" class="section">
+  <h3>Step 3: Student Details</h3>
+  <button id="show_step">Show Steps</button> 
+  <p id="ul_step"></p>
+  <input id="studentNameInput" placeholder="Student Name"><br>
+  <input id="comment" type="text" placeholder="Teachers Comment">
+  <input id="rank" type="text" placeholder="Rank from combine report">
+  <label>Student Photo:</label>
+  <input type="file" id="studentPhoto" accept="image/*"><br>
+  <img id="photoPreview" src="" style="max-width:120px; display:none; margin-bottom:10px;"><br>
+  <div id="scoresContainer"></div>
+  <button onclick="showStep(2)">Back</button>
+  <button onclick="showStep(4)">Next</button>
+</div>
+
+<!-- Step 4: Generate Report -->
+<div id="step4" class="section">
+  <h3>Step 4: Generate Report</h3>
+  <button onclick="generateReport()">Generate Report</button>
+  <button onclick="downloadPDF()">Download PDF</button>
+  <button onclick="downloadWord()">Download Word</button>
+  <p>Ensure You  Download as PDF OR Word Document before you close this page!</p>
+  <div id="reportPreview"></div>
+  <p><a class="livechat" href="https://wa.me/7010067689">Live Chat <img src="livechat.png"  width="50px"></a></p>
+  <p style="font-size:12px">All Right Reserved <br>
+    Noble Studio Lagos, Copyright © 2025</p>
+</div>
+
+<script>
+
+const button = document.getElementById('show_step');
+document.getElementById('show_step');
+button.addEventListener('click', function(){
+  document.getElementById('ul_step').innerHTML=`<ol> 
+    <li> Enter Student Name </li> <br>
+    <li> Your Comment for The Student </li><br>
+    <li>Rank the student from the combine result earlier generated for the class </li><br>
+    <li> Upload Student Image </li> <br>
+    <li>Enter student score for both Test and Exam for all the subjected created</li><br>
+    <li>Click on Save & Next </li> </0l> `;
+});
+document.getElementById('show_step');
+button.addEventListener('mouseover', function(){
+  ul_step.innerHTML = "";
+});
+
+let subjects = [], schoolLogoData = '', studentPhotoData = '';
+
+function updateStepButtons(current){
+  for(let i=1;i<=4;i++){
+    const btn=document.getElementById('btnStep'+i);
+    btn.classList.remove('currentStep','completedStep');
+    if(i===current) btn.classList.add('currentStep');
+    else btn.classList.add('completedStep');
+  }
+}
+function showStep(n){
+  updateStepButtons(n);
+  for(let i=1;i<=4;i++)
+    document.getElementById('step'+i).classList.remove('active');
+  document.getElementById('step'+n).classList.add('active');
+}
+
+// Step 1: Handle logo
+document.getElementById('schoolLogo').addEventListener('change',function(e){
+  const file=e.target.files[0];
+  if(file){
+    const reader=new FileReader();
+    reader.onload=function(evt){
+      schoolLogoData=evt.target.result;
+      const img=document.getElementById('logoPreview');
+      img.src=schoolLogoData;
+      img.style.display='block';
+    };
+    reader.readAsDataURL(file);
+  }
+});
+function saveStep1(){ showStep(2); }
+
+// Step 2: Subjects
+function generateSubjects(){
+  const count=Number(document.getElementById('subjectCount').value);
+  const container=document.getElementById('subjectsContainer');
+  container.innerHTML='';
+  for(let i=0;i<count;i++){
+    const input=document.createElement('input');
+    input.placeholder=`Subject ${i+1}`;
+    input.className='subject';
+    container.appendChild(input);
+    container.appendChild(document.createElement('br'));
+  }
+}
+function saveSubjects(){
+  subjects=Array.from(document.getElementsByClassName('subject')).map(i=>i.value||'Unnamed');
+  if(subjects.length===0){alert('Add at least one subject');return;}
+  generateScoreInputs();
+  showStep(3);
+}
+
+// Step 3: Student info and photo
+document.getElementById('studentPhoto').addEventListener('change',function(e){
+  const file=e.target.files[0];
+  if(file){
+    const reader=new FileReader();
+    reader.onload=function(evt){
+      studentPhotoData=evt.target.result;
+      const img=document.getElementById('photoPreview');
+      img.src=studentPhotoData;
+      img.style.display='block';
+    };
+    reader.readAsDataURL(file);
+  }
+});
+
+function generateScoreInputs(){
+  const container=document.getElementById('scoresContainer');
+  container.innerHTML='';
+  subjects.forEach((sub,j)=>{
+    const testInput=document.createElement('input');
+    testInput.type='number';
+    testInput.placeholder=`${sub} Test`;
+    testInput.className=`test${j}`;
+    container.appendChild(testInput);
+
+    const examInput=document.createElement('input');
+    examInput.type='number';
+    examInput.placeholder=`${sub} Exam`;
+    examInput.className=`exam${j}`;
+    container.appendChild(examInput);
+
+    container.appendChild(document.createElement('br'));
+  });
+}
+
+// Step 4: Generate Report
+function generateReport(){
+  const name=document.getElementById('studentNameInput').value||'Student';
+  const scores={};
+  let total=0;
+  subjects.forEach((sub,j)=>{
+    const t=Number(document.getElementsByClassName(`test${j}`)[0]?.value)||0;
+    const e=Number(document.getElementsByClassName(`exam${j}`)[0]?.value)||0;
+    scores[sub]={test:t,exam:e,total:t+e};
+    total+=t+e;
+  });
+  const maxTotal=subjects.length*100;
+  const percentage=Math.round((total/maxTotal)*100);
+
+  let html='';
+  if(schoolLogoData) html+=`<img src="${schoolLogoData}" style="max-width:100px;"><br>`;
+  html+=`<strong>School:</strong> ${document.getElementById('schoolName').value}<br>`;
+  html+=`<strong>Class:</strong> ${document.getElementById('className').value}<br>`;
+  html+=`<strong>Teacher:</strong> ${document.getElementById('teacherName').value}<br>`;
+  html+=`<strong>Student:</strong> ${name}<br>`;
+  if(studentPhotoData) html+=`<img src="${studentPhotoData}" style="max-width:120px; border-radius:8px; margin-top:6px;"><br>`;
+  html+=`<strong>Timestamp:</strong> ${new Date().toLocaleString()}<br><br>`;
+
+  const chunkSize=8;
+  const subjectChunks=[];
+  for(let i=0;i<subjects.length;i+=chunkSize)
+    subjectChunks.push(subjects.slice(i,i+chunkSize));
+
+  html+=`<table>`;
+  subjectChunks.forEach(chunk=>{
+    html+=`<tr>`; chunk.forEach(sub=>html+=`<th>${sub}</th>`); html+=`</tr>`;
+    html+=`<tr>`; chunk.forEach(sub=>{const c=scores[sub].test>=50?'#FFFFFFFF':'#FFFFFFFF'; html+=`<td style="background:${c}">Test: ${scores[sub].test}</td>`}); html+=`</tr>`;
+    html+=`<tr>`; chunk.forEach(sub=>{const c=scores[sub].exam>=50?'#FFFFFFFF':'#FFFFFFFF'; html+=`<td style="background:${c}">Exam: ${scores[sub].exam}</td>`}); html+=`</tr>`;
+    html+=`<tr>`; chunk.forEach(sub=>{const c=scores[sub].total>=50?'#D0F0D7FF':'#F8D3D6FF'; html+=`<td style="background:${c};font-weight:600">Total: ${scores[sub].total}</td>`}); html+=`</tr>`;
+  });
+  const grandColor=total/maxTotal>=0.5?'#d4edda':'#f8d7da';
+  const percColor=percentage>=50?'#d4edda':'#f8d7da';
+  html+=`<tr><td colspan="${Math.min(chunkSize,subjects.length)-1}" style="text-align:right;font-weight:600;background:${grandColor}">Grand Total: ${total}</td>`;
+  html+=`<td style="background:${percColor};font-weight:600">Percentage: ${percentage}%</td></tr>`;
+  html+=`</table>`;
+
+html+=`<strong><italic>Teacher Comment:</italic></strong> ${document.getElementById('comment').value}<br><br>`;
+  html+=`<strong><italic>POSITION:</italic></strong> ${document.getElementById('rank').value}<br><br>`;
+
+  document.getElementById('reportPreview').innerHTML=html;
+}
+
+// ✅ Fixed: Desktop & Mobile Friendly PDF
+
+  function downloadPDF() {
+
+  const report = document.getElementById("reportPreview");
+
+  // -------------------------------
+  // BROWSER MODE
+  // -------------------------------
+  if (typeof window.cordova === "undefined") {
+    html2pdf().from(report).set({
+      margin: 10,
+      filename: "Student_Report.pdf",
+      image: { type: "jpeg", quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
+    }).save();
+    return;
+  }
+
+  // -------------------------------
+  // CORDOVA MODE (ANDROID)
+  // -------------------------------
+  document.addEventListener("deviceready", function () {
+
+    html2pdf().from(report).set({
+      margin: 10,
+      image: { type: "jpeg", quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
+    }).toPdf().get("pdf").then(function (pdf) {
+
+      const pdfData = pdf.output("arraybuffer");
+      const blob = new Blob([pdfData], { type: "application/pdf" });
+
+      const fileName = "Student_Report.pdf";
+      const folder = cordova.file.externalRootDirectory + "Download/";
+
+      window.resolveLocalFileSystemURL(folder, function (dir) {
+        dir.getFile(fileName, { create: true }, function (file) {
+          file.createWriter(function (writer) {
+            writer.write(blob);
+
+            writer.onwriteend = function () {
+              cordova.plugins.fileOpener2.open(
+                folder + fileName,
+                "application/pdf"
+              );
+            };
+          });
+        });
+      });
+
+    });
+
+  }, false);
+}
+
+
+</script>
+</body>
+</html>

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Edit Question</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #f4f6f9;
+    padding: 20px;
+  }
+  h2 {
+    color: #3f51b5;
+    text-align: center;
+  }
+  input, select, button {
+    display: block;
+    width: 100%;
+    max-width: 400px;
+    padding: 10px;
+    margin: 10px auto;
+    font-size: 16px;
+  }
+  button {
+    background: #3f51b5;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  button:hover {
+    background: #303f9f;
+  }
+</style>
+</head>
+<body>
+
+<h2>Edit Question</h2>
+
+<input type="text" id="questionText" placeholder="Enter Question">
+<input type="text" id="opt1" placeholder="Option 1">
+<input type="text" id="opt2" placeholder="Option 2">
+<input type="text" id="opt3" placeholder="Option 3">
+<input type="text" id="opt4" placeholder="Option 4">
+
+<select id="correctAnswer">
+  <option value="">Select Correct Answer</option>
+  <option value="0">Option 1</option>
+  <option value="1">Option 2</option>
+  <option value="2">Option 3</option>
+  <option value="3">Option 4</option>
+</select>
+
+<input type="number" id="scoreValue" placeholder="Enter Score (if not equal marks)">
+
+<button id="saveBtn">Save Changes</button>
+
+<script>
+// Get question index from URL
+const urlParams = new URLSearchParams(window.location.search);
+const index = parseInt(urlParams.get('index'));
+
+// Load quizData from localStorage
+let quizData = JSON.parse(localStorage.getItem('quizData') || '{}');
+if(!quizData.questions || !quizData.questions[index]){
+    alert("Question not found!");
+    throw new Error("Question not found");
+}
+
+// Fill inputs with existing question data
+const q = quizData.questions[index];
+document.getElementById('questionText').value = q.question;
+document.getElementById('opt1').value = q.options[0];
+document.getElementById('opt2').value = q.options[1];
+document.getElementById('opt3').value = q.options[2];
+document.getElementById('opt4').value = q.options[3];
+document.getElementById('correctAnswer').value = q.correct;
+document.getElementById('scoreValue').value = q.score;
+
+// Save changes
+
+document.getElementById('saveBtn').addEventListener('click', (e)=>{
+    e.preventDefault(); // prevent form submission / refresh
+
+    const question = document.getElementById('questionText').value.trim();
+    const options = [
+        document.getElementById('opt1').value.trim(),
+        document.getElementById('opt2').value.trim(),
+        document.getElementById('opt3').value.trim(),
+        document.getElementById('opt4').value.trim()
+    ];
+    const correct = document.getElementById('correctAnswer').value;
+    const score = parseInt(document.getElementById('scoreValue').value) || 1;
+
+    if(!question || options.some(o=>!o) || correct===""){
+        alert("Fill all fields!");
+        return;
+    }
+
+    // Update question in localStorage
+    quizData.questions[index] = { question, options, correct: parseInt(correct), score };
+    localStorage.setItem('quizData', JSON.stringify(quizData));
+
+    alert("✅ Question updated! Returning to coordinator page.");
+    window.location.href = "index.html";
+});
+</script>
+
+</body>
+</html>

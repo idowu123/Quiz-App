@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Offline Quiz App (Passkey + PDF Result + Responsive)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+   <link rel="manifest" href="/manifest.json">
+  <style>
+    /* ---------- GLOBAL STYLES ---------- */
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f9;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background: #3f51b5;
+      color: white;
+      padding: 15px;
+      text-align: center;
+    }
+
+    section {
+      display: none;
+      padding: 20px;
+    }
+
+    .active {
+      display: block;
+    }
+
+    input,
+    button,
+    select {
+      margin: 8px 0;
+      padding: 10px;
+      width: 100%;
+      max-width: 400px;
+      display: block;
+      box-sizing: border-box;
+      font-size: 16px;
+    }
+
+    button {
+      background: #3f51b5;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+
+    button:hover {
+      background: #303f9f;
+      transition: 0.2s;
+    }
+
+    .question-card {
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 5px;
+      background: white;
+    }
+
+    #questionList {
+      margin-top: 15px;
+    }
+
+    .student-box {
+      max-width: 400px;
+      margin: 40px auto;
+      padding: 20px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    #progressBar {
+      width: 100%;
+      background: #ddd;
+      height: 25px;
+      border-radius: 5px;
+      overflow: hidden;
+      margin: 20px 0;
+    }
+
+    #progressFill {
+      height: 100%;
+      width: 0;
+      text-align: center;
+      color: white;
+      line-height: 25px;
+      background: green;
+      transition: width 0.5s ease;
+    }
+
+    .answer-card {
+      border: 1px solid #aaa;
+      padding: 10px;
+      margin: 10px 0;
+      background: #fff;
+      border-left: 6px solid #3f51b5;
+    }
+
+    .answer-card.correct {
+      border-left-color: green;
+    }
+
+    .answer-card.wrong {
+      border-left-color: red;
+    }
+
+    /* ---------- PASSKEY LOGIN ---------- */
+    .login-container {
+      max-width: 420px;
+      margin: 60px auto;
+      padding: 24px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+      text-align: center;
+    }
+
+    .login-container h2 {
+      color: #3f51b5;
+      margin: 0 0 10px;
+    }
+
+    #login-btn {
+      padding: 12px;
+      font-size: 16px;
+    }
+
+    #error-msg {
+      color: red;
+      margin-top: 10px;
+      font-size: 14px;
+    }
+
+    .purchase {
+      background-color: #62006b;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 12px;
+      margin-top: 8px;
+      width: 100%;
+      font-weight: bold;
+    }
+
+    .purchase a {
+      color: white;
+      text-decoration: none;
+      display: block;
+    }
+
+    /* ---------- RESPONSIVE DESIGN ---------- */
+    @media (max-width: 600px) {
+      body {
+        font-size: 16px;
+      }
+
+      header {
+        font-size: 18px;
+      }
+
+      input,
+      button {
+        font-size: 15px;
+      }
+
+      .login-container,
+      .student-box {
+        margin: 20px;
+        width: auto;
+      }
+    }
+    .other_tools{
+      background-color: white;
+      width:120px;
+    }
+    .other_tools a{
+      font-weight: bold;
+      text-decoration: none;
+    }
+    .student_report{
+        width:180px;
+    }
+    .show_infoofreport{
+        background-color: black;
+        color:rgba(255, 255, 255, 0.726);
+        margin:0px;
+        padding:10px;
+    }
+    .student_report a {
+      color:white;
+      font-size: 12px;
+      font-weight: bold;
+    }
+    hr{
+      color:blue;
+      size:20px;
+    }
+    .email{
+      margin:30px;
+      text-decoration: none;
+
+    }
+    .email a{
+      text-decoration: none;
+    }
+
+.livechat{
+  color:hsla(236, 98%, 61%, 0.507);
+  font-style: italic;
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+  animation:blink 2s infinite;
+}
+.livechat:hover{
+  color:rgb(255, 115, 0);   
+}
+@keyframes blink{
+  0%{
+    opacity:1;
+  }
+  50%{
+    opacity:0;
+  }
+  100%{
+    opacity:1;
+  }
+}
+
+  </style>
+</head>
+<body>
+    <center><h1>OTHER TOOLS</h1></center>
+    <P><center><button class="student_report"><a href="studentreportapp.html"> CREATE A REPORT SHEET FOR STUDENT</a></button><button id="student_report" class="student_report">About this Tool</button></center></P>
+    <p id='p_show' class="show_infoofreport"></p><br><br>
+    <hr>
+    <br><br>
+   <center> <button class="student_report" ><a href="attendance.html">Mark Student Attendance</a></button><button class="student_report" id="typing_exam" >About This Tool</button></center>
+   <p id="typing_test" class="show_infoofreport"></p><br>
+   <center><p>More Tools Coming Soon!</p></center>
+   <center><p>For Enquiry  & Feedback Send Mail To:</p></center>
+   <center>
+   <a  class="email" href="mailto:support@noblestudio.com.ng">support@noblestudio.com.ng</a>
+   <a class= "email" href="mailto:solomonidowumichael@gmail.com">solomonidowumichael@gmail.com</a>
+   <p><a class="livechat" href="https://wa.me/7010067689">Live Chat <img src="livechat.png"  width="50px"></a></p>
+   </center>
+</body>
+<script>
+    document.getElementById('p_show');
+   const btn = document.getElementById('student_report');
+    btn.addEventListener('mouseover', function(){
+ document.getElementById('p_show').innerText ='"Streamline your student report preparation with our tool! input test and exam scores for individual students or entire classes, and let it compile the results. get instant access to:\n  \n*Total Score for each students \n \n *Total Score per students \n  \n *Overall grade for all student \n \n *Students ranking by grade \n \n  *Generate Student Report Sheet for every End of the Term which can be sent to parent via email and whatSapp or Printed \n \n easily identify top-performing students and rank them accordingly. Our mobile-friendly app lets you generate reports anywhere, anytime, without needing a PC or laptop. \n Download results as PDF or Word documents and share with superiors or parent via WhatsApp or Email. Boost your productivity and make report preparation a breeze!"'
+    });
+
+     btn.addEventListener('mouseout', function() {
+            p_show.innerHTML = "";
+            p_show.style.display ='flex';
+           });
+
+document.getElementById('typing_test');
+const button = document.getElementById('typing_exam');
+button.addEventListener('mouseover', function(){
+  document.getElementById('typing_test').innerText='"This App help teachers to manage attendance for single class Multiple schools and  classes , ideal for teachers managing one class and teachers managing different schools and classes. reduces paperwork and allows quick taking of attendance records directly from phone". '
+});
+
+ button.addEventListener('mouseout', function(){
+  document.getElementById('typing_test').innerText="";
+ });
+</script>
+</html>

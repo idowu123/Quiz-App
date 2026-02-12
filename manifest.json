@@ -1,0 +1,13 @@
+{
+  "name": "School Assisted App",
+  "about developer":"solomon idowu michael",
+  "short_name": "SAP",
+  "description": "App for all you schoool needs, helps you manage your class and assist you !",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "",
+  "theme_color": "",
+  "icons": [
+    
+  ]
+}

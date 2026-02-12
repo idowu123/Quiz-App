@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Attendance App</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
+<style>
+body { font-family: Arial, sans-serif; margin:0; padding:0; background:rgb(242, 242, 242); }
+header { background:#004aad; color:white; padding:10px 20px; text-align:center; }
+nav { display:flex; flex-wrap:wrap; background:#333; }
+nav button { flex:1; padding:10px; color:white; background:#333; border:none; cursor:pointer; }
+nav button.active { background:#555; }
+section { padding:20px; display:none; }
+section.active { display:block; }
+input, select, button, textarea { padding:5px; margin:5px 0; }
+.message { margin:5px 0; font-size:14px; transition: opacity 0.5s; }
+.success { color:green; }
+.error { color:red; }
+h1{font-size: 17px;}
+.spinner { display:none; border:4px solid #f3f3f3; border-top:4px solid #004aad; border-radius:50%; width:25px; height:25px; animation:spin 1s linear infinite; margin:10px auto; }
+@keyframes spin { 0%{transform:rotate(0deg);} 100%{transform:rotate(360deg);} }
+table { width:100%; border-collapse:collapse; margin-top:10px; }
+th, td { border:1px solid #ccc; padding:5px; text-align:left; }
+@media(max-width:600px){ nav button{ flex:100%; } }
+</style>
+</head>
+<body>
+
+<header>
+    <h1>Attendance App & Notice App</h1>  
+</header>
+
+<nav>
+    <button class="tab-btn active" data-tab="school-section">Schools</button>
+    <button class="tab-btn" data-tab="class-section">Classes</button>
+    <button class="tab-btn" data-tab="student-section">Students</button>
+    <button class="tab-btn" data-tab="attendance-section">Attendance</button>
+    <button class="tab-btn" data-tab="report-section">Reports</button>
+    <button class="tab-btn" data-tab="notice-section">Notices</button>
+</nav>
+
+<div class="spinner" id="spinner"></div>
+
+<!-- School Section -->
+<section id="school-section" class="active">
+    <h2>Schools</h2>
+    <input type="text" id="new-school-input" placeholder="Enter new school">
+    <button id="add-school-btn">Add School</button>
+    <div id="school-message" class="message"></div>
+    <ul id="school-list"></ul>
+</section>
+
+<!-- Class Section -->
+<section id="class-section">
+    <h2>Classes</h2>
+    <select id="select-school-for-class"></select>
+    <input type="text" id="new-class-input" placeholder="Enter new class">
+    <button id="add-class-btn">Add Class</button>
+    <div id="class-message" class="message"></div>
+    <ul id="class-list"></ul>
+</section>
+
+<!-- Student Section -->
+<section id="student-section">
+    <h2>Students</h2>
+    <select id="select-school-for-student"></select>
+    <select id="select-class-for-student"></select>
+    <input type="text" id="new-student-input" placeholder="Enter new student">
+    <button id="add-student-btn">Add Student</button>
+    <div id="student-message" class="message"></div>
+    <ul id="student-list"></ul>
+</section>
+
+<!-- Attendance Section -->
+<section id="attendance-section">
+    <h2>Attendance</h2>
+    <select id="select-school-for-attendance"></select>
+    <select id="select-class-for-attendance"></select>
+    <p>Pick date </p>
+    <input type="date" id="attendance-date">
+    <button id="load-students-btn">Load Students</button>
+    <div id="attendance-message" class="message"></div>
+    <table id="attendance-table">
+        <thead>
+            <tr><th>Student Name</th><th>Present</th><th>Absent</th></tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+    <button id="save-attendance-btn">Save Attendance</button>
+</section>
+
+<!-- Report Section -->
+<section id="report-section">
+    <h2>Reports</h2>
+    <select id="select-school-for-report"></select>
+    <select id="select-class-for-report"></select>
+    <select id="select-student-for-report"><option value="">All Students</option></select>
+    <p>Pick a date from </p>
+    <input type="date" id="report-start-date">
+    <p>Select End date </p>
+    <input type="date" id="report-end-date">
+    <button id="generate-report-btn">Generate Report</button>
+    <button id="save-report-pdf-btn">Save as PDF</button>
+    <div id="report-message" class="message"></div>
+    <div id="report-output"></div>
+</section>
+
+<!-- Notices / Announcements Section -->
+<section id="notice-section">
+    <h2>Notices / Announcements</h2>
+
+    <label>School:</label>
+    <select id="select-school-for-notice"></select><br>
+
+    <label>Upload School Logo (JPEG):</label>
+    <input type="file" id="notice-logo" accept="image/jpeg"><br>
+
+    <label>Heading / Topic:</label>
+    <input type="text" id="notice-heading" placeholder="E.g., PTA Meeting"><br>
+
+    <label>Message Body:</label>
+    <textarea id="notice-body" rows="8" cols="50" placeholder="Write your message here..."></textarea><br>
+
+    <button id="save-notice-pdf-btn">Save as PDF</button>
+    <button id="save-notice-word-btn">Save as Word</button>
+
+    <div id="notice-message" class="message"></div>
+    <div id="notice-preview"></div>
+</section>
+
+<script>
+/* ---------- LocalStorage Setup ---------- */
+let schools = JSON.parse(localStorage.getItem('schools')) || [];
+let classes = JSON.parse(localStorage.getItem('classes')) || [];
+let students = JSON.parse(localStorage.getItem('students')) || [];
+let attendance = JSON.parse(localStorage.getItem('attendance')) || [];
+let lastSelected = JSON.parse(localStorage.getItem('lastSelected')) || {};
+
+/* ---------- Utility Functions ---------- */
+function showMessage(elId, msg, type='success'){
+    const el = document.getElementById(elId);
+    el.textContent=msg; el.className='message '+type;
+    setTimeout(()=>el.textContent='',3000);
+}
+function saveLocal(){
+    localStorage.setItem('schools', JSON.stringify(schools));
+    localStorage.setItem('classes', JSON.stringify(classes));
+    localStorage.setItem('students', JSON.stringify(students));
+    localStorage.setItem('attendance', JSON.stringify(attendance));
+    localStorage.setItem('lastSelected', JSON.stringify(lastSelected));
+}
+function showSpinner(){ document.getElementById('spinner').style.display='block'; }
+function hideSpinner(){ document.getElementById('spinner').style.display='none'; }
+
+/* ---------- Tabs ---------- */
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+        document.querySelectorAll('section').forEach(s=>s.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+        document.getElementById(btn.dataset.tab).classList.add('active');
+        btn.classList.add('active');
+        if(btn.dataset.tab==='class-section') loadClasses();
+        if(btn.dataset.tab==='student-section') loadStudentsDropdowns();
+        if(btn.dataset.tab==='attendance-section') loadAttendanceDropdowns();
+        if(btn.dataset.tab==='report-section') loadReportDropdowns();
+    });
+});
+
+/* ---------- Schools ---------- */
+function loadSchools(){
+    const ul=document.getElementById('school-list'); ul.innerHTML='';
+    const schoolSelects=[ 'select-school-for-class','select-school-for-student','select-school-for-attendance','select-school-for-report','select-school-for-notice'];
+    schoolSelects.forEach(id=>{
+        const sel=document.getElementById(id);
+        sel.innerHTML='<option value="">Select School</option>';
+        schools.forEach(s=>sel.innerHTML+=`<option value="${s}">${s}</option>`);
+        if(lastSelected[id]) sel.value = lastSelected[id];
+    });
+    schools.forEach((s,i)=>{ ul.innerHTML+=`<li>${s} <button onclick="deleteSchool(${i})">Delete</button></li>`; });
+}
+function deleteSchool(idx){
+    const school=schools[idx]; schools.splice(idx,1);
+    classes=classes.filter(c=>c.school!==school);
+    students=students.filter(st=>st.school!==school);
+    attendance=attendance.filter(a=>a.school!==school);
+    saveLocal(); loadSchools(); loadClasses(); loadStudents();
+}
+document.getElementById('add-school-btn').addEventListener('click', ()=>{
+    const val=document.getElementById('new-school-input').value.trim();
+    if(val && !schools.includes(val)){ schools.push(val); saveLocal(); loadSchools(); showMessage('school-message','School added successfully'); document.getElementById('new-school-input').value=''; }
+    else showMessage('school-message','Invalid or duplicate school','error');
+});
+loadSchools();
+
+/* ---------- Classes ---------- */
+function loadClasses(){
+    const schoolSel=document.getElementById('select-school-for-class').value;
+    const ul=document.getElementById('class-list'); ul.innerHTML='';
+    const selStudent=document.getElementById('select-class-for-student');
+    const selAttendance=document.getElementById('select-class-for-attendance');
+    const selReport=document.getElementById('select-class-for-report');
+    [selStudent,selAttendance,selReport].forEach(sel=>sel.innerHTML='<option value="">Select Class</option>');
+    classes.filter(c=>c.school===schoolSel).forEach((c,i)=>{
+        ul.innerHTML+=`<li>${c.name} <button onclick="deleteClass(${i})">Delete</button></li>`;
+        [selStudent,selAttendance,selReport].forEach(sel=>sel.innerHTML+=`<option value="${c.name}">${c.name}</option>`);
+    });
+    [selStudent,selAttendance,selReport].forEach(sel=>{ if(lastSelected[sel.id]) sel.value = lastSelected[sel.id]; });
+}
+function deleteClass(idx){ classes.splice(idx,1); students=students.filter(s=>s.class!==classes[idx]?.name); attendance=attendance.filter(a=>a.class!==classes[idx]?.name); saveLocal(); loadClasses(); loadStudents(); }
+document.getElementById('add-class-btn').addEventListener('click', ()=>{
+    const school=document.getElementById('select-school-for-class').value;
+    const name=document.getElementById('new-class-input').value.trim();
+    if(school && name && !classes.find(c=>c.school===school && c.name===name)){
+        classes.push({school,name}); saveLocal(); loadClasses(); showMessage('class-message','Class added successfully'); document.getElementById('new-class-input').value='';
+    } else showMessage('class-message','Invalid or duplicate class','error');
+});
+document.getElementById('select-school-for-class').addEventListener('change', ()=>{ loadClasses(); lastSelected['select-school-for-class']=document.getElementById('select-school-for-class').value; saveLocal(); });
+
+/* ---------- Students ---------- */
+function loadStudentsDropdowns(){
+    const school=document.getElementById('select-school-for-student').value;
+    const classSel=document.getElementById('select-class-for-student');
+    classSel.innerHTML='<option value="">Select Class</option>';
+    classes.filter(c=>c.school===school).forEach(c=>classSel.innerHTML+=`<option value="${c.name}">${c.name}</option>`);
+    if(lastSelected['select-class-for-student']) classSel.value=lastSelected['select-class-for-student'];
+    loadStudents();
+}
+function loadStudents(){
+    const school=document.getElementById('select-school-for-student').value;
+    const cls=document.getElementById('select-class-for-student').value;
+    lastSelected['select-school-for-student']=school; lastSelected['select-class-for-student']=cls; saveLocal();
+    const ul=document.getElementById('student-list'); ul.innerHTML='';
+    students.filter(s=>s.school===school && s.class===cls).forEach((s,i)=>{ ul.innerHTML+=`<li>${s.name} <button onclick="deleteStudent(${i})">Delete</button></li>`; });
+}
+function deleteStudent(idx){ students.splice(idx,1); saveLocal(); loadStudents(); }
+document.getElementById('add-student-btn').addEventListener('click', ()=>{
+    const school=document.getElementById('select-school-for-student').value;
+    const cls=document.getElementById('select-class-for-student').value;
+    const name=document.getElementById('new-student-input').value.trim();
+    if(school && cls && name && !students.find(s=>s.school===school && s.class===cls && s.name===name)){
+        students.push({school,class:cls,name}); saveLocal(); loadStudents(); showMessage('student-message','Student added successfully'); document.getElementById('new-student-input').value='';
+    } else showMessage('student-message','Invalid or duplicate student','error');
+});
+document.getElementById('select-school-for-student').addEventListener('change', loadStudentsDropdowns);
+document.getElementById('select-class-for-student').addEventListener('change', loadStudents);
+
+/* ---------- Attendance ---------- */
+function loadAttendanceDropdowns(){
+    const school=document.getElementById('select-school-for-attendance').value;
+    const classSel=document.getElementById('select-class-for-attendance');
+    classSel.innerHTML='<option value="">Select Class</option>';
+    classes.filter(c=>c.school===school).forEach(c=>classSel.innerHTML+=`<option value="${c.name}">${c.name}</option>`);
+    if(lastSelected['select-class-for-attendance']) classSel.value=lastSelected['select-class-for-attendance'];
+}
+document.getElementById('select-school-for-attendance').addEventListener('change', ()=>{ loadAttendanceDropdowns(); lastSelected['select-school-for-attendance']=document.getElementById('select-school-for-attendance').value; saveLocal(); });
+document.getElementById('select-class-for-attendance').addEventListener('change', ()=>{ lastSelected['select-class-for-attendance']=document.getElementById('select-class-for-attendance').value; saveLocal(); });
+
+document.getElementById('load-students-btn').addEventListener('click', ()=>{
+    showSpinner();
+    setTimeout(()=>{
+        hideSpinner();
+        const school=document.getElementById('select-school-for-attendance').value;
+        const cls=document.getElementById('select-class-for-attendance').value;
+        const date=document.getElementById('attendance-date').value;
+        if(!school||!cls||!date){ showMessage('attendance-message','Select school, class, and date','error'); return; }
+        const tbody=document.querySelector('#attendance-table tbody'); tbody.innerHTML='';
+        students.filter(s=>s.school===school && s.class===cls).forEach((s)=>{
+            const att=attendance.find(a=>a.school===school && a.class===cls && a.student===s.name && a.date===date);
+            tbody.innerHTML+=`<tr><td>${s.name}</td><td><input type="radio" name="${s.name}" value="Present" ${att && att.status==='Present'?'checked':''}></td><td><input type="radio" name="${s.name}" value="Absent" ${att && att.status==='Absent'?'checked':''}></td></tr>`;
+        });
+    },300);
+});
+document.getElementById('save-attendance-btn').addEventListener('click', ()=>{
+    const school=document.getElementById('select-school-for-attendance').value;
+    const cls=document.getElementById('select-class-for-attendance').value;
+    const date=document.getElementById('attendance-date').value;
+    if(!school||!cls||!date){ showMessage('attendance-message','Select school, class, and date','error'); return; }
+    const rows=document.querySelectorAll('#attendance-table tbody tr');
+    rows.forEach(r=>{
+        const studentName=r.cells[0].textContent;
+        const status=r.querySelector('input[type="radio"]:checked')?.value || 'Absent';
+        const existing=attendance.find(a=>a.school===school && a.class===cls && a.student===studentName && a.date===date);
+        if(existing) existing.status=status; else attendance.push({school,class:cls,student:studentName,date,status});
+    });
+    saveLocal(); showMessage('attendance-message','Attendance saved successfully');
+});
+
+/* ---------- Reports ---------- */
+function loadReportDropdowns(){
+    const school=document.getElementById('select-school-for-report').value;
+    const clsSel=document.getElementById('select-class-for-report');
+    const studentSel=document.getElementById('select-student-for-report');
+    clsSel.innerHTML='<option value="">Select Class</option>';
+    studentSel.innerHTML='<option value="">All Students</option>';
+    classes.filter(c=>c.school===school).forEach(c=>clsSel.innerHTML+=`<option value="${c.name}">${c.name}</option>`);
+    const selectedClass = clsSel.value;
+    if(selectedClass){
+        students.filter(s=>s.school===school && s.class===selectedClass)
+                .forEach(s=>studentSel.innerHTML+=`<option value="${s.name}">${s.name}</option>`);
+    }
+    if(lastSelected['select-class-for-report']) clsSel.value=lastSelected['select-class-for-report'];
+    if(lastSelected['select-student-for-report']) studentSel.value=lastSelected['select-student-for-report'];
+}
+document.getElementById('select-school-for-report').addEventListener('change', ()=>{
+    loadReportDropdowns();
+    lastSelected['select-school-for-report'] = document.getElementById('select-school-for-report').value;
+    saveLocal();
+});
+
+document.getElementById('select-class-for-report').addEventListener('change', ()=>{
+    const school = document.getElementById('select-school-for-report').value;
+    const cls = document.getElementById('select-class-for-report').value;
+    const studentSel = document.getElementById('select-student-for-report');
+    studentSel.innerHTML = '<option value="">All Students</option>';
+    students.filter(s => s.school === school && s.class === cls)
+            .forEach(s => studentSel.innerHTML += `<option value="${s.name}">${s.name}</option>`);
+    lastSelected['select-class-for-report'] = cls;
+    saveLocal();
+});
+
+document.getElementById('select-student-for-report').addEventListener('change', ()=>{
+    lastSelected['select-student-for-report'] = document.getElementById('select-student-for-report').value;
+    saveLocal();
+});
+
+document.getElementById('generate-report-btn').addEventListener('click', ()=>{
+    const school = document.getElementById('select-school-for-report').value;
+    const cls = document.getElementById('select-class-for-report').value;
+    const student = document.getElementById('select-student-for-report').value;
+    const startDate = document.getElementById('report-start-date').value;
+    const endDate = document.getElementById('report-end-date').value;
+
+    if(!school || !cls || !startDate || !endDate){
+        showMessage('report-message','Please select all required fields','error');
+        return;
+    }
+
+    let filtered = attendance.filter(a => a.school === school && a.class === cls && a.date >= startDate && a.date <= endDate);
+    if(student) filtered = filtered.filter(a => a.student === student);
+
+    let output = `<h3>Attendance Report: ${school} - ${cls} (${startDate} to ${endDate})</h3><table><tr><th>Student</th>`;
+    const dates = [...new Set(filtered.map(a => a.date))].sort();
+    dates.forEach(d => output += `<th>${d}</th>`);
+    output += `</tr>`;
+
+    const reportStudents = student ? students.filter(s => s.school === school && s.class === cls && s.name === student)
+                                   : students.filter(s => s.school === school && s.class === cls);
+
+    reportStudents.forEach(s => {
+        output += `<tr><td>${s.name}</td>`;
+        dates.forEach(d => {
+            const att = filtered.find(a => a.student === s.name && a.date === d);
+            output += `<td>${att ? att.status : ''}</td>`;
+        });
+        output += `</tr>`;
+    });
+
+    output += `</table>`;
+    document.getElementById('report-output').innerHTML = output;
+});
+
+// Save Report as PDF
+document.getElementById('save-report-pdf-btn').addEventListener('click', ()=>{
+    const element = document.getElementById('report-output');
+    if(element.innerHTML.trim() === ''){
+        showMessage('report-message','Generate report first','error');
+        return;
+    }
+    html2pdf().from(element)
+        .set({margin:0.5, filename:'Attendance_Report.pdf', html2canvas:{scale:2}})
+        .save();
+});
+
+/* ---------- Notices / Cordova PDF & Word Functions ---------- */
+function saveNoticeCordovaAsPdf(){
+    const school = document.getElementById('select-school-for-notice').value;
+    const heading = document.getElementById('notice-heading').value.trim();
+    const body = document.getElementById('notice-body').value.trim();
+    const logoInput = document.getElementById('notice-logo');
+
+    if(!school || !heading || !body){
+        showMessage('notice-message','Please fill all required fields','error');
+        return;
+    }
+
+    let previewDiv = document.createElement('div');
+    previewDiv.style.border = '1px solid #ccc';
+    previewDiv.style.padding = '15px';
+    previewDiv.style.fontFamily = 'Arial';
+    previewDiv.style.margin = '10px';
+
+    if(logoInput.files.length > 0){
+        const reader = new FileReader();
+        reader.onload = function(e){
+            previewDiv.innerHTML = `<img src="${e.target.result}" style="max-height:80px;"><h2>${school}</h2><h3>${heading}</h3><p>${body.replace(/\n/g,'<br>')}</p>`;
+            document.getElementById('notice-preview').innerHTML = '';
+            document.getElementById('notice-preview').appendChild(previewDiv);
+            html2pdf().from(previewDiv).set({margin:0.5, filename:`${heading}.pdf`, html2canvas:{scale:2}}).save();
+        };
+        reader.readAsDataURL(logoInput.files[0]);
+    } else {
+        previewDiv.innerHTML = `<h2>${school}</h2><h3>${heading}</h3><p>${body.replace(/\n/g,'<br>')}</p>`;
+        document.getElementById('notice-preview').innerHTML = '';
+        document.getElementById('notice-preview').appendChild(previewDiv);
+        html2pdf().from(previewDiv).set({margin:0.5, filename:`${heading}.pdf`, html2canvas:{scale:2}}).save();
+    }
+
+    showMessage('notice-message','Notice PDF generated successfully');
+    document.getElementById('notice-heading').value='';
+    document.getElementById('notice-body').value='';
+    logoInput.value='';
+}
+
+function saveNoticeCordovaAsWord(){
+    const school = document.getElementById('select-school-for-notice').value;
+    const heading = document.getElementById('notice-heading').value.trim();
+    const body = document.getElementById('notice-body').value.trim();
+
+    if(!school || !heading || !body){
+        showMessage('notice-message','Please fill all required fields','error');
+        return;
+    }
+
+    const htmlContent = `<h2>${school}</h2><h3>${heading}</h3><p>${body.replace(/\n/g,'<br>')}</p>`;
+    const blob = new Blob(['\ufeff', htmlContent], {type:'application/msword'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${heading}.doc`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+
+    showMessage('notice-message','Notice Word document generated successfully');
+    document.getElementById('notice-heading').value='';
+    document.getElementById('notice-body').value='';
+    document.getElementById('notice-logo').value='';
+}
+
+// Bind buttons
+document.getElementById('save-notice-pdf-btn').addEventListener('click', saveNoticeCordovaAsPdf);
+document.getElementById('save-notice-word-btn').addEventListener('click', saveNoticeCordovaAsWord);
+
+/* ---------- Initialize Dropdowns ---------- */
+loadSchools();
+loadClasses();
+loadStudentsDropdowns();
+loadAttendanceDropdowns();
+loadReportDropdowns();
+</script>
+</body>
+</html>
