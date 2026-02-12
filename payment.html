@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Quiz App Subscription</title>
+    <script src="https://js.paystack.co/v1/inline.js"></script>
+</head>
+<body>
+
+<h2>Subscribe to Quiz App (₦2600 / Year)</h2>
+<button id="payBtn">Pay Now</button>
+
+<script>
+
+function startPayment() {
+
+    var email = prompt("Enter your email");
+
+    if (!email) {
+        alert("Email required!");
+        return;
+    }
+
+    var handler = PaystackPop.setup({
+        key: "  pk_live_ff6f89169eb0390d93a0777c949d59a3982a21e4", // 🔴 replace with your real public key
+        email: email,
+        amount: 2600 * 100, // Paystack uses kobo
+        currency: "NGN",
+        ref: "QUIZAPP_" + Date.now(),
+
+        callback: function(response) {
+
+            activateSubscription();
+            alert("Payment successful! Ref: " + response.reference);
+        },
+
+        onClose: function() {
+            alert("Payment window closed.");
+        }
+    });
+
+    handler.openIframe();
+}
+
+function activateSubscription() {
+
+    localStorage.setItem("quizAppSubscriptionActive", "true");
+    localStorage.setItem("quizAppSubscriptionStart", Date.now());
+    localStorage.setItem("quizAppSubscriptionEnd", Date.now() + (365*24*60*60*1000));
+
+    alert("🎉 Subscription Activated for 1 Year!");
+}
+
+document.getElementById("payBtn").addEventListener("click", startPayment);
+
+</script>
+
+</body>
+</html>
