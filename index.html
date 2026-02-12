@@ -1,0 +1,954 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Pocket Quiz App (School Assisted APP)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+   <link rel="manifest" href="/manifest.json">
+  <style>
+    /* ---------- GLOBAL STYLES ---------- */
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f9;
+      margin: 0;
+      padding: 0;
+    }
+
+    header {
+      background: #3f51b5;
+      color: white;
+      padding: 15px;
+      text-align: center;
+    }
+
+    section {
+      display: none;
+      padding: 20px;
+    }
+
+    .active {
+      display: block;
+    }
+
+    input,
+    button,
+    select {
+      margin: 8px 0;
+      padding: 10px;
+      width: 100%;
+      max-width: 400px;
+      display: block;
+      box-sizing: border-box;
+      font-size: 16px;
+    }
+
+    button {
+      background: #3f51b5;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+
+    button:hover {
+      background: #303f9f;
+      transition: 0.2s;
+    }
+
+    .question-card {
+      border: 1px solid #ccc;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 5px;
+      background: white;
+    }
+
+    #questionList {
+      margin-top: 15px;
+    }
+
+    .student-box {
+      max-width: 400px;
+      margin: 40px auto;
+      padding: 20px;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    #progressBar {
+      width: 100%;
+      background: #ddd;
+      height: 25px;
+      border-radius: 5px;
+      overflow: hidden;
+      margin: 20px 0;
+    }
+
+    #progressFill {
+      height: 100%;
+      width: 0;
+      text-align: center;
+      color: white;
+      line-height: 25px;
+      background: green;
+      transition: width 0.5s ease;
+    }
+
+    .answer-card {
+      border: 1px solid #aaa;
+      padding: 10px;
+      margin: 10px 0;
+      background: #fff;
+      border-left: 6px solid #3f51b5;
+    }
+
+    .answer-card.correct {
+      border-left-color: green;
+    }
+
+    .answer-card.wrong {
+      border-left-color: red;
+    }
+
+    /* ---------- PASSKEY LOGIN ---------- */
+    .login-container {
+      max-width: 420px;
+      margin: 60px auto;
+      padding: 24px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+      text-align: center;
+    }
+
+    .login-container h2 {
+      color: #3f51b5;
+      margin: 0 0 10px;
+    }
+
+    #login-btn {
+      padding: 12px;
+      font-size: 16px;
+    }
+
+    #error-msg {
+      color: red;
+      margin-top: 10px;
+      font-size: 14px;
+    }
+
+    .purchase {
+      background-color: #62006b;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 12px;
+      margin-top: 8px;
+      width: 100%;
+      font-weight: bold;
+    }
+
+    .purchase a {
+      color: white;
+      text-decoration: none;
+      display: block;
+    }
+
+    /* ---------- RESPONSIVE DESIGN ---------- */
+    @media (max-width: 600px) {
+      body {
+        font-size: 16px;
+      }
+
+      header {
+        font-size: 18px;
+      }
+
+      input,
+      button {
+        font-size: 15px;
+      }
+
+      .login-container,
+      .student-box {
+        margin: 20px;
+        width: auto;
+      }
+    }
+    .other_tools{
+      background-color: white;
+      width:120px;
+    }
+    .other_tools a{
+      font-weight: bold;
+      text-decoration: none;
+    }
+    .how{
+      width:300px;
+      background-color: #62006b;
+    }
+    .show_how{
+      margin:10px;
+      text-align: justify;
+    }
+    .questiontext{
+      background-color: #303f9f;
+      color:white;
+    }
+.livechat{
+  color:hsla(251, 96%, 18%, 0.5);
+  font-style: italic;
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+  animation:blink 2s infinite;
+}
+.livechat:hover{
+  color:rgb(255, 115, 0);   
+}
+@keyframes blink{
+  0%{
+    opacity:1;
+  }
+  50%{
+    opacity:0;
+  }
+  100%{
+    opacity:1;
+  }
+}
+h2{
+font-size: 15px;
+}
+
+#trialBox{
+  background:#fff3cd;
+  color:#856404;
+  padding:10px;
+  text-align:center;
+  font-weight:bold;
+}
+#trialBox button{
+  background:#d63384;
+  margin-top:6px;
+}
+
+  </style>
+</head>
+<body>
+
+  <!-- PASSKEY LOGIN PAGE -->
+  <div class="login-container" id="loginPage">
+    <h2>Activate App<br>With Passkey</h2>
+    <input type="password" id="passkey" placeholder="Enter Passkey">
+    <button id="login-btn">Activate</button>
+    
+    <Button class="purchase"><a href="retrievepasskey.html">Forgetten Passkey</a></Button>
+    <p><b>Don't have a passkey?</b></p>
+    <button class="purchase"><a href="payment.html" target="_blank" rel="noopener">Purchase Passkey Here</a></button>
+    <div id="error-msg"></div>
+
+
+    <button id="trialBtn" class="purchase">Start 14 Days Free Trial</button>
+
+    <p><a class="livechat" href="https://wa.me/7010067689">Live Chat <img src="livechat.png"  width="50px"></a></p>
+  </div>
+
+  <!-- QUIZ BUILDER PAGE -->
+  <div id="quizApp" style="display:none;">
+    <!-- 🔹 TRIAL COUNTDOWN BOX -->
+  <div id="trialBox" style="display:none;">
+    ⏳ Trial: <span id="daysLeft"></span> days left 
+    <br>
+    <button onclick=location.href="payment.html">Subscribe / Buy Passkey</button>
+  </div>
+    <header>
+      <button class="other_tools"><a href="resultapp.html">Other Tools</a></button>
+      <h1>Pocket Quiz App<br><small style="font-size:15px">Quiz Anytime, Anywhere</small> </h1>
+    </header>
+<center><button id="how" class="how">How to use this App</button></center>
+      <p id ="show_how" class="show_how"></p>
+    <section id="coordinatorPage" class="active">
+      <h2>Coordinator Setup</h2>
+      <input type="text" id="quizTitle" placeholder="Enter Quiz Title">
+      <input type="text" id="coordinatorName" placeholder="Enter Coordinator Name">
+      <input type="text" id="className" placeholder="Enter Class Name">
+      <input type="date" id="quizDate" placeholder="Date & Time">
+      <P>Upload Image For Your Quiz</P>
+      <input type="file" id="logoUpload" accept="image/*">
+      <label>Quiz Duration:</label>
+<select id="timer">
+  <optgroup label="Minutes">
+    <option value="60">1 min</option>
+    <option value="120">2 min</option>
+    <option value="180">3 min</option>
+    <option value="240">4 min</option>
+    <option value="300">5 min</option>
+    <option value="600">10 min</option>
+    <option value="900">15 min</option>
+    <option value="1200">20 min</option>
+    <option value="1800">30 min</option>
+    <option value="3600">60 min</option>
+  </optgroup>
+  <optgroup label="Hours">
+    <option value="7200">2 hr</option>
+    <option value="10800">3 hr</option>
+    <option value="14400">4 hr</option>
+    <option value="18000">5 hr</option>
+  </optgroup>
+</select>
+      <p>Enter Passing Rate For The Quiz E.g 50%</p>
+      <input type="number" id="passingScore" placeholder="Enter Passing Score (%)">
+  
+      <label> Allow only one attempt(thick below to set date and time of quiz expiration)</label>
+      <input type="checkbox" id="attemptOnce">
+      <label>Expiry Date & Time: <input type="datetime-local" id="expiryTime"></label><br>
+
+      <label> Equal marks for all questions (Uncheck if you wish to manually set score per each questions)</label>
+      <input type="checkbox" id="equalMarks" checked>
+       
+      <h3>Add Questions</h3>
+      <input class="questiontext" type="text" id="questionText" placeholder="Enter Question">
+      <input type="text" id="opt1" placeholder="Option 1">
+      <input type="text" id="opt2" placeholder="Option 2">
+      <input type="text" id="opt3" placeholder="Option 3">
+      <input type="text" id="opt4" placeholder="Option 4">
+      <select id="correctAnswer">
+        <option value="">Select Correct Answer</option>
+        <option value="0">Option 1</option>
+        <option value="1">Option 2</option>
+        <option value="2">Option 3</option>
+        <option value="3">Option 4</option>
+      </select>
+      <input type="number" id="scoreValue" placeholder="Enter Score (if not equal marks)">
+      <button onclick="addQuestion()">Add Question</button>
+
+      <div id="questionList"></div>
+      <!--UID LOGIC-->
+ <h3>Unique ID Control</h3>
+ <p>Get A unique ID when you click on generate button  or you manually create it yourself in the input field then send  to student to gain access to this quiz you can generate for multiple student</p>
+<button ><a style="color:white; text-decoration: none;"  href="generateid.html">Generate Unique ID</a></button> <br>
+<textarea id="uidList" placeholder="Enter one Unique ID per line "></textarea>
+<p style="font-size: 12px;">e.g <br>378FR45 <br> 56749DF <br> FEYU44</p>
+
+<button onclick="saveUIDs()">Save Unique IDs</button>
+
+<p id="uidStatus"></p>
+<!--End of UID LOGIC-->
+
+
+      <button onclick="saveQuiz()">💾 Save Quiz as Student HTML</button>
+      <button id="logoutBtn" style="margin-top:15px; background:red;">🔁 Logout / Reset App</button>
+    
+  <p style="font-size:12px">All Right Reserved <br>
+    Noble Studio Lagos, Copyright © 2025</p>
+    </section>
+  </div>
+
+<script>
+
+
+/*    UID CONTROL  */
+  function saveUIDs() {
+  var uidInput = document.getElementById("uidList");
+  var status = document.getElementById("uidStatus");
+
+  if (!uidInput || !status) {
+    alert("UID elements not found in the page");
+    return;
+  }
+
+  var raw = uidInput.value.trim();
+
+  if (raw === "") {
+    alert("Enter at least one Unique ID");
+    return;
+  }
+
+  var ids = raw
+    .split("\n")
+    .map(function(id){ return id.trim(); })
+    .filter(function(id){ return id !== ""; });
+
+  
+
+  quizData.allowedUIDs = ids;
+  localStorage.setItem("quizData", JSON.stringify(quizData));
+
+  // ✅ Display result
+  status.innerHTML =
+    "✅ " + ids.length + " Unique IDs saved<br><small>" + ids.join(", ") + "</small>";
+}
+
+const button = document.getElementById('how')
+document.getElementById('show_how');
+button.addEventListener('click', function(){
+  document.getElementById('show_how').innerHTML=`"Create Quizzes for students and candidates with our app! set quiz titles, coordinator names, classes, and dates. \n Upload logos and pictures to personalize it, configure timer settings and passing rates (e.g., 50%"). \n Allow single attempts and set expiry dates/times to limit access, \n Ideal for interviews, exams, and assessments. set minimum time limits to prevent re-attempts. Assign equal mark to questions and add them one by one . Save quizzes as HTML files, which will automatically download on your Phone or PC if you are using PCs, \n Next Share  The downloaded HTML quiz files via WhatsApp, Bluetooth or Email, even with remote students. Students access quizzes through their browsers, input their  details and answer quiz questions offline. Save results as PDF with data connection or screen shot the result without data connection and send the result back to the coordinator. `;
+});
+button.addEventListener('mouseout', function() {
+            show_how.innerHTML = "";
+});
+
+
+document.addEventListener("DOMContentLoaded", function() {
+
+  //cordova plugin setting
+  document.addEventListener("deviceready", function () {
+  console.log("Device ready to save file");
+}, false);
+
+  /* ===== PASSKEY LOGIN ===== */
+  const passkeys = ["NOID12345", "NOID67890", "NOID2700087", "NOID5916492",
+   "NSQAP3614959778", "NSQAP9386102711", "NSQAP4223975841", "NSQAP6024217635", "NSQAP2940749811", "NSQAP7818216203", "NSQAP0445794500", "NSQAP6819953237", "NSQAP9148694648", "NSQAP7351184359",
+   "NSQAP7068585933", "NSQAP9707225487", "NSQAP5307553762", "NSQAP4825732730", "NSQAP926025994",  "NSQAP1886704744", "NSQAP0344601671", "NSQAP1894878186", "NSQAP1062685416", "NSQAP6220861323",
+   "NSQAP3538235271", "NSQAP2261613589", "NSQAP0440996178", "NSQAP1063410237", "NSQAP9239671216", "NSQAP8769080843", "NSQAP1604623913", "NSQAP0448103854", "NSQAP8008042496", "NSQAP8228920795", 
+   "NSAQP0782933289", "NSAQP0877349157", "NSAQP0984915621", "NSQAP8352620427", "NSQAP5184107163", "NSQAP1822437642", "NSQAP9690760755", "NSQAP4702615359", "NSQAP8445495778", "NSQAP6383668199",
+   "NSQAP1562570286", "NSQAP4233670204", "NSQAP0988688902", "NSQAP9921911410", "NSQAP5590198525", "NSQAP0231235571", "NSQAP3616471096", "NSQAP8455109005", "NSQAP89627401604","NSQAP5922338564",
+   "NSQAP7000781008", "NSQAP0075956523", "NSQAP4024789741", "NSQAP1689423684", "NSQAP8686085429", "NSQAP5629388566", "NSQAP2155783741", "NSQAP7396839980", "NSQAP8252524552", "NSQAP9276517049", 
+   "NSQAP6522598977", "NSQAP8997355316", "NSQAP2847408094", "NSQAP7469109378", "NSQAP4290165426", "NSQAP4923899978", "NSQAP6456082717", "NSQAP7181317119", "NSQAP2456000057", "NSQAP4617372747",
+   "NSQAP3634780747", "NSQAP7241085257", "NSQAP9240669053", "NSQAP2143862709", "NSQAP9243668573", "NSQAP7360538720", "NSQAP2330853247", "NSQAP6735357249", "NSQAP7165467891", "NSQAP0996327411",
+   "NSQAP3009459841", "NSQAP0132724456", "NSQAP2729702049", "NSQAP4607793332", "NSQAP1033226449", "NSQAP0798518042", "NSQAP0433558249", "NSQAP4084939323", "NSQAP3064166521", "NSQAP3656896927",
+   "NSQAP4968957215", "NSQAP6371437915", "NSQAP8377556849", "NSQAP4396863011", "NSQAP2778525212", "NSQAP0418019579", "NSQAP3596417985", "NSQAP3873938571", "NSQAP8900955751", "NSQAP2719888413",
+   "NSQAP4882953079", "NSQAP3238858558", "NSQAP8514823867", "NSQAP5133854190", "NSQAP5006319110", "NSQAP7050186056", "NSQAP4284718455", "NSQAP5351881165", "NSQAP4253445306", "NSQAP4580894190",
+   "NSQAP5056827779", "NSQAP9180343296", "NSQAP8891108678", "NSQAP3251238295", "NSQAP2677586023", "NSQAP0533502119", "NSQAP0077749927", "NSQAP7075988917", "NSQAP6443201378", "NSQAP3670975324",
+   "NSQAP7505254934", "NSQAP5590124486", "NSQAP3329240204", "NSQAP0928644900", "NSQAP3563853622", "NSQAP6572704188", "NSQAP7263211359", "NSQAP2224779321", "NSQAP3364232588", "NSQAP9093731074",
+   "NSQAP5910030797", "NSQAP7353131490", "NSQAP9897330804", "NSQAP5386363009", "NSQAP4560586216", "NSQAP1985474601", "NSQAP2535384925", "NSQAP1859959800", "NSQAP3706801168", "NSQAP8092208794",
+   "NSQAP7266143493", "NSQAP0871548313", "NSQAP6528871112", "NSQAP7962700699", "NSQAP8432064927", "NSQAP1728418097", "NSQAP8681779083", "NSQAP2118507345", "NSQAP9507407076", "NSQAP7907842468",
+   "NSQAP0131932769", "NSQAP2204433612", "NSQAP7400532395", "NSQAP2240259331", "NSQAP0351026713", "NSQAP6292534548", "NSQAP0211822597", "NSQAP1639983120", "NSQAP6171135536", "NSQAP1781143665",
+   "NSQAP5971378277", "NSQAP4219864426", "NSQAP3680089315", "NSQAP9193928062", "NSQAP3880327205", "NSQAP3206986443", "NSQAP3263169987", "NSQAP6879986159", "NSQAP2175057921", "NSQAP0794620010",
+   "NSQAP2821041847", "NSQAP6054728959", "NSQAP5372453158", "NSQAP0007532922", "NSQAP7752656116", "NSQAP6836418403", "NSQAP1635154786", "NSQAP1557906424", "NSQAP6331873741", "NSQAP8055823202",
+   "NSQAP5675342070", "NSQAP6631753401", "NSQAP2702156890", "NSQAP3107946687", "NSQAP9720519717", "NSQAP8921134859", "NSQAP9296889243", "NSQAP9524565905", "NSQAP7545052603", "NSQAP6553196409",
+   "NSQAP3199253338", "NSQAP2824690036", "NSQAP0189464229", "NSQAP9046632848", "NSQAP7812639676", "NSQAP3323022697", "NSQAP2104316543", "NSQAP4259986941", "NSQAP7205300185", "NSQAP6615287643",
+
+  ];
+
+  const loginBtn = document.getElementById("login-btn");
+  const loginPage = document.getElementById("loginPage");
+  const quizApp = document.getElementById("quizApp");
+  const errorMsg = document.getElementById("error-msg");
+  const logoutBtn = document.getElementById("logoutBtn");
+
+  const trialBtn = document.getElementById("trialBtn");
+const trialBox = document.getElementById("trialBox");
+const daysLeftEl = document.getElementById("daysLeft");
+
+/* ===== TRIAL CONSTANTS ===== */
+const TRIAL_DAYS = 14;
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/*SUBSCRIPTION CONSTRAINTS */
+const SUB_YEAR_DAYS =365; 
+const SUB_WARNING_DAYS =30; // 1  month warning
+
+/* ===== CHECK TRIAL STATUS ===== */
+function getTrialDaysLeft(){
+  const start = localStorage.getItem("quizAppTrialStart");
+  if(!start) return 0;
+  const diff = Math.floor((Date.now() - Number(start)) / DAY_MS);
+  return TRIAL_DAYS - diff;
+}
+
+/* ===== AUTO LOGIN / AUTO LOGOUT ===== */
+if(localStorage.getItem("quizAppActivated")==="true"){
+  loginPage.style.display="none";
+  quizApp.style.display="block";
+}
+
+/* ===== HANDLE TRIAL ON LOAD ===== */
+const trialUsed = localStorage.getItem("quizAppTrialUsed")==="true";
+const daysLeft = getTrialDaysLeft();
+
+if(trialUsed){
+  if(daysLeft > 0){
+    loginPage.style.display="none";
+    quizApp.style.display="block";
+    trialBox.style.display="block";
+    daysLeftEl.textContent = daysLeft;
+    logoutBtn.style.display="none";
+  }else{
+    // trial expired
+    localStorage.removeItem("quizAppActivated");
+    trialBtn.style.display="none";
+    alert("⏰ Trial expired. Please purchase passkey.");
+  }
+}
+
+enforceTrialExpiry();
+setInterval(enforceTrialExpiry, 60000); //check every 1 min
+
+
+setInterval(function(){
+  const activeKey = localStorage.getItem("activePasskey");
+  if(activeKey){
+    checkPasskeyValidity(activeKey);
+  }
+}, 60000);
+
+
+/* ===== PASSKEY SUBSCRIPTION LOGIC ===== */
+
+function getPasskeyData(){
+  return JSON.parse(localStorage.getItem("passkeyData") || "{}");
+}
+
+function savePasskeyData(data){
+  localStorage.setItem("passkeyData", JSON.stringify(data));
+}
+
+function checkPasskeyValidity(passkey){
+
+  let data = getPasskeyData();
+
+  // First time activation
+  if(!data[passkey]){
+    data[passkey] = {
+      activatedOn: Date.now()
+    };
+    savePasskeyData(data);
+    return true;
+  }
+
+  const activatedOn = data[passkey].activatedOn;
+  const daysUsed = Math.floor((Date.now() - activatedOn) / DAY_MS);
+  const daysLeft = SUB_YEAR_DAYS - daysUsed;
+
+  if(daysLeft <= 0){
+    // expired
+    localStorage.removeItem("quizAppActivated");
+    alert("⛔ Subscription expired. Please renew your passkey.");
+    location.reload();
+    return false;
+  }
+
+  // 1 month warning
+  if(daysLeft <= SUB_WARNING_DAYS){
+    const lastWarn = data[passkey].lastWarn || 0;
+
+    if(Date.now() - lastWarn > DAY_MS){
+      alert("⚠ Your passkey will expire in " + daysLeft + " days.");
+      data[passkey].lastWarn = Date.now();
+      savePasskeyData(data);
+    }
+  }
+
+  return true;
+}
+
+function enforceTrialExpiry(){
+  const daysLeft = getTrialDaysLeft();
+  if(localStorage.getItem("quizAppTrialUsed")==="true" && daysLeft <= 0){
+    localStorage.removeItem("quizAppActivated");
+    localStorage.removeItem("quizAppTrialUsed");
+    localStorage.removeItem("quizAppTrialStart");
+    alert("⏰ Trial expired. Please purchase passkey.");
+    location.reload();
+  }
+}
+
+
+
+/* ===== START TRIAL ===== */
+trialBtn.addEventListener("click", ()=>{
+  if(!localStorage.getItem("quizAppTrialUsed")){
+    localStorage.setItem("quizAppTrialUsed","true");
+    localStorage.setItem("quizAppTrialStart", Date.now());
+    loginPage.style.display="none";
+    quizApp.style.display="block";
+    trialBox.style.display="block";
+    daysLeftEl.textContent = TRIAL_DAYS;
+  }
+});
+
+
+
+
+  // show builder if already activated
+  if (localStorage.getItem("quizAppActivated") === "true") {
+    loginPage.style.display = "none";
+    quizApp.style.display = "block";
+  }
+
+  // activate app
+  loginBtn.addEventListener("click", () => {
+    const key = document.getElementById("passkey").value.trim();
+    if (passkeys.includes(key)) {
+      //check subscription validity
+      if(!checkPasskeyValidity(key)) return;
+      localStorage.setItem("quizAppActivated", "true");
+      localStorage.setItem("activePasskey", key);
+      loginPage.style.display = "none";
+      quizApp.style.display = "block";
+      alert("✅ App Activated Successfully!");
+    } else {
+      errorMsg.textContent = "❌ Invalid passkey. Please try again.";
+    }
+  });
+
+  // logout button clears activation
+  logoutBtn.addEventListener("click", () => {
+    localStorage.removeItem("quizAppActivated");
+    alert("You have logged out successfully!");
+    location.reload();
+  });
+
+// Escape HTML special characters
+function htmlSpecialChars(str) {
+    if (!str) return '';
+    return str
+        .replace(/&/g, '&amp;')   // & → &amp;
+        .replace(/</g, '&lt;')    // < → &lt;
+        .replace(/>/g, '&gt;')    // > → &gt;
+        .replace(/"/g, '&quot;')  // " → &quot;
+        .replace(/'/g, '&#039;'); // ' → &#039;
+}
+
+  /* ===== QUIZ BUILDER ===== */
+   quizData = JSON.parse(localStorage.getItem("quizData")) || {
+  
+    title: "",
+    coordinator: "",
+    className: "",
+    date: "",
+    logo: "",
+    timer: 60,
+    passingScore: 50,
+    attemptOnce: false,
+    expiryTime: null,
+    equalMarks: true,
+    questions: []
+  
+  };
+  if(quizData.questions.length > 0){
+    renderAllQuestions();
+  }
+
+
+window.addQuestion = function() {
+    const qText = htmlSpecialChars(questionText.value.trim());
+    const options = [
+        htmlSpecialChars(opt1.value.trim()),
+        htmlSpecialChars(opt2.value.trim()),
+        htmlSpecialChars(opt3.value.trim()),
+        htmlSpecialChars(opt4.value.trim())
+    ];
+    const correct = correctAnswer.value;
+    const equalMarks = equalMarksEl.checked;
+    const scoreVal = parseInt(scoreValue.value) || 1;
+
+    if (qText && options.every(o => o) && correct !== "") {
+        const qObj = { question: qText, options, correct: parseInt(correct), score: equalMarks ? 1 : scoreVal };
+        quizData.questions.push(qObj);
+        localStorage.setItem("quizData", JSON.stringify(quizData));
+        renderAllQuestions();
+        
+
+        // Clear input fields
+        questionText.value = opt1.value = opt2.value = opt3.value = opt4.value = "";
+        correctAnswer.value = "";
+        scoreValue.value = "";
+    } else {
+        alert("Please fill in all fields!");
+    }
+};
+
+function renderAllQuestions() {
+  const questionList = document.getElementById("questionList");
+  questionList.innerHTML = "";
+
+  quizData.questions.forEach((q, index) => {
+    let optionsHtml = "";
+    q.options.forEach((opt, i)=> {
+      optionsHtml += `<div>${i +1}.${opt}</div>`;
+    });
+
+    const div = document.createElement("div");
+    div.className = "question-card";
+    div.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <strong>${index + 1}. ${q.question}</strong>
+        <span>
+          <a href="editquestion.html?index=${index}">✏️ Edit</a>
+          &nbsp;
+          <a href="deletequestions.html?index=${index}">🗑 Delete</a>
+        </span>
+      </div>
+      <div style="margin-top:5px;">${optionsHtml}</div>
+    `;
+
+    questionList.appendChild(div);
+  });
+}
+
+  
+
+  const equalMarksEl = document.getElementById("equalMarks");
+
+  
+window.saveQuiz = function() {
+  // Save all coordinator/quiz info
+  quizData.title = quizTitle.value || "Untitled Quiz";
+  quizData.coordinator = coordinatorName.value;
+  quizData.className = className.value;
+  quizData.date = quizDate.value;
+  quizData.timer = parseInt(timer.value) || 60;
+  quizData.passingScore = parseInt(passingScore.value) || 50;
+  quizData.attemptOnce = attemptOnce.checked;
+  quizData.expiryTime = expiryTime.value || null;
+  quizData.equalMarks = equalMarks.checked;
+
+  const logoInput = logoUpload.files[0];
+
+  function finishSave() {
+    // ✅ Clear quiz from localStorage
+    localStorage.removeItem("quizData");
+
+    // ✅ Reset in-memory quizData
+    quizData = {
+      title: "",
+      coordinator: "",
+      className: "",
+      date: "",
+      logo: "",
+      timer: 60,
+      passingScore: 50,
+      attemptOnce: false,
+      expiryTime: null,
+      equalMarks: true,
+      questions: []
+    };
+
+    // ✅ Clear UI
+    renderAllQuestions();
+    quizTitle.value = coordinatorName.value = className.value = quizDate.value = "";
+    timer.value = 60;
+    passingScore.value = 50;
+    attemptOnce.checked = false;
+    equalMarks.checked = true;
+    logoUpload.value = "";
+  }
+
+  if (logoInput) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      quizData.logo = e.target.result;
+      generateFile();  // download file
+      finishSave();    // clear storage AFTER download
+    };
+    reader.readAsDataURL(logoInput);
+  } else {
+    generateFile(); // download file
+    finishSave();   // clear storage
+  }
+};
+
+  function generateFile() {
+    const data = JSON.stringify(quizData);
+    const css = document.querySelector("style").innerHTML;
+
+    const studentHTML = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>${quizData.title}</title>
+  <style>${css}</style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"><\/script>
+</head>
+<body>
+  <header><h1>${quizData.title}</h1></header>
+  <section id="studentLogin" class="active">
+    <div class="student-box">
+      <h2>Student Login</h2>
+      <input type="text" id="studentName" placeholder="Enter Student Name">
+      <input type="text" id="studentClass" placeholder="Enter Student Class">
+      <input type="text" id="studentUID" placeholder="Enter Your Unique ID">
+      <button onclick="startQuiz()">Start Quiz</button>
+    </div>
+  </section>
+  <section id="quizPage"></section>
+  <section id="resultPage"></section>
+
+  <script>
+
+let quizData = ${data};
+    let studentData = { name: '', class: '' };
+    let timerInterval;
+
+
+function getDeviceID() {
+  // Simple device fingerprint using localStorage; you can improve if needed
+  if (!localStorage.getItem("deviceID")) {
+    localStorage.setItem("deviceID", 'device_' + Math.random().toString(36).substr(2, 9));
+  }
+  return localStorage.getItem("deviceID");
+}
+
+function startQuiz() {
+  const name = document.getElementById("studentName").value.trim();
+  const cls = document.getElementById("studentClass").value.trim();
+  const uid = document.getElementById("studentUID").value.trim();
+
+  //check if UID Was created by coordinator
+  if(!quizData.allowedUIDs || !quizData.allowedUIDs.includes(uid)){
+  alert("Invalid ID. This ID was not issued by the coordinator.");
+  return;
+  }
+
+  const deviceID = getDeviceID();
+  // ❌ Check if UID is already used
+  if (localStorage.getItem("quiz_uid_used_" + uid)) {
+    alert("❌ This Unique ID has already been used on another device or this device.");
+    return;
+  }
+
+  // ✅ Lock UID immediately
+  localStorage.setItem("quiz_uid_used_" + uid, "true");
+  localStorage.setItem("quiz_uid_device_" + uid, deviceID);
+
+  // Save student session
+  studentData.name = name;
+  studentData.class = cls;
+  studentData.uid = uid;
+  localStorage.setItem("current_student", JSON.stringify(studentData));
+
+  // Render quiz page
+
+      document.body.innerHTML = \`
+        <header><h1>\${quizData.title}</h1></header>
+        <section id="quizPage" class="active">
+          <img src="\${quizData.logo}" style="max-height:100px;\${quizData.logo ? '' : 'display:none'}">
+          <p><strong>Coordinator:</strong> \${quizData.coordinator}</p>
+          <p><strong>Class:</strong> \${quizData.className}</p>
+          <p><strong>Date:</strong> \${quizData.date}</p>
+          <p><strong>Student:</strong> \${studentData.name} (\${studentData.class})</p>
+          <p><strong>Time Left:</strong> <span id="timeLeft"></span> sec</p>
+          <div id="quizContainer"></div>
+          <button onclick="submitQuiz()">Submit Quiz</button>
+        </section>\`;
+
+      const qContainer = document.getElementById('quizContainer');
+      quizData.questions.forEach((q, i) => {
+        const div = document.createElement('div');
+        div.className = 'question-card';
+        div.innerHTML = \`<p>\${i+1}. \${q.question} <em>(\${q.score} mark)</em></p>\`;
+        q.options.forEach((opt, j) => {
+          div.innerHTML += \`<label><input type='radio' name='q\${i}' value='\${j}'> \${j + 1}. \${opt}</label><br>\`;
+        });
+        qContainer.appendChild(div);
+      });
+
+      let timeLeft = quizData.timer;
+      document.getElementById('timeLeft').innerText = timeLeft;
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        document.getElementById('timeLeft').innerText = timeLeft;
+        if (timeLeft <= 0) {
+          clearInterval(timerInterval);
+          submitQuiz();
+        }
+      }, 1000);
+    }
+
+    function submitQuiz() {
+      clearInterval(timerInterval);
+      let score = 0, total = 0, review = '';
+      quizData.questions.forEach((q, i) => {
+        const sel = document.querySelector(\`input[name='q\${i}']:checked\`);
+        const ans = sel ? parseInt(sel.value) : -1;
+        if (ans === q.correct) score += q.score;
+        total += q.score;
+        review += \`<div class='answer-card \${ans===q.correct?'correct':'wrong'}'>\${i+1}. \${q.question}<br><strong>Your:</strong> \${ans>=0?q.options[ans]:'No answer'}<br><strong>Correct:</strong> \${q.options[q.correct]}</div>\`;
+      });
+      const percent = Math.round(score / total * 100);
+
+      document.body.innerHTML = \`
+        <header><h1>Result - \${quizData.title}</h1></header>
+        <section id='resultPage' class='active'>
+          <p><strong>Student:</strong> \${studentData.name} (\${studentData.class})</p>
+          <p><strong>Score:</strong> \${score} / \${total} (\${percent}%)</p>
+          <p id='passFail'>\${percent>=quizData.passingScore?'🎉 Passed':'❌ Failed'}</p>
+          <div id='progressBar'><div id='progressFill' style='width:\${percent}%;\${percent<quizData.passingScore?'background:red':''}'>\${percent}%</div></div>
+          <h3>Answer Review</h3>\${review}
+          <button onclick='downloadPDF()'>📄 Download Result as PDF</button>
+        </section>\`;
+    }
+
+    // ===== PDF Download Function =====
+function downloadPDF() {
+    // Get the result page content
+    const resultContent = document.getElementById('resultPage');
+    if (!resultContent) {
+        alert("Result page not found!");
+        return;
+    }
+
+    // Use html2pdf to save only the result section
+    const opt = {
+        margin:       10,
+        filename:     'QuizResult_' + studentData.name + '.pdf',
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2 },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+
+    html2pdf().set(opt).from(resultContent).save();
+}
+  <\/script>
+</body>
+</html>`;
+
+   // ===== SAVE STUDENT HTML (BROWSER + CORDOVA) =====
+if (typeof window.cordova !== "undefined") {
+    // 📱 CORDOVA MODE
+    window.resolveLocalFileSystemURL(
+        cordova.file.externalDataDirectory,
+        function (dir) {
+            dir.getFile("StudentQuiz.html", { create: true }, function (file) {
+                file.createWriter(function (writer) {
+                    writer.onwriteend = function () {
+                        alert("✅ Student quiz saved successfully on phone!");
+                    };
+                    writer.onerror = function () {
+                        alert("❌ Failed to save quiz file");
+                    };
+                    const blob = new Blob([studentHTML], { type: "text/html" });
+                    writer.write(blob);
+                });
+            });
+        }
+    );
+} else {
+    // 🌐 BROWSER MODE
+    const blob = new Blob([studentHTML], { type: "text/html" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "StudentQuiz.html";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(a.href);
+}
+  
+//✅ Clear quizData from localStorage after download
+  localStorage.removeItem("quizData");
+
+  // Also clear the quizData in memory to reset your builder page
+  quizData = { questions: [] };
+  renderAllQuestions();
+
+  // Optional: clear input fields for title, coordinator, etc.
+  quizTitle.value = coordinatorName.value = className.value = quizDate.value = "";
+  timer.value = 60;
+  passingScore.value = 50;
+  attemptOnce.checked = false;
+  equalMarks.checked = true;
+  logoUpload.value = "";
+
+  }  
+});
+
+
+
+</script>
+</body>
+</html>
